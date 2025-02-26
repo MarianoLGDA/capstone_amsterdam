@@ -88,14 +88,14 @@ st.markdown(
 # Load logos
 col1, col2, col3 = st.columns([1, 3, 1])
 with col1:
-    st.image("kpmg_logo.jpg", width=100)
+    st.image("kpmg_logo.jpg", width=200)
 with col3:
-    st.image("airbnb_logo.jpg", width=100)
+    st.image("airbnb_logo.jpg", width=200)
 
-st.title("📍 Travel Planner: Find the Best Airbnb for Your Trip")
+st.title("SmartStay: AI-Powered Interrail Accommodation")
 
 # Step 1: User selects city
-city = st.selectbox("Which city are you visiting?", ["Amsterdam"], index=0)
+city = st.selectbox("Which city are you planning to visit in this Interrail Adeventure?", ["Amsterdam"], index=0)
 
 selected_sights = []
 
