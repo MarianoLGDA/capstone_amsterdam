@@ -45,13 +45,13 @@ st.markdown(
     
     /* Text color */
     h1, h2, h3, h4, h5, h6, p, label {
-        color: white;
+        color: #333333;
     }
     
     /* Buttons */
     .stButton>button {
         background-color: #FF385C !important;
-        color: white !important;
+        color: #e8255c !important;
         border-radius: 10px;
         font-size: 16px;
         font-weight: bold;
@@ -59,7 +59,7 @@ st.markdown(
     
     /* Sidebar background */
     [data-testid="stSidebar"] {
-        background-color: #FF5A5F;
+        background-color: #e8255c;
     }
 
     /* Dropdowns and select boxes */
