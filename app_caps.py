@@ -62,9 +62,15 @@ for col, (sight, (lat, lon, img)) in zip(cols, second_row):
         if st.checkbox(sight, key=sight):
             selected_sights.append((sight, lat, lon))
 
-# Step 3: Ask for budget and dates
+# Step 3: Ask for property type, room type, budget, and dates
 if selected_sights:
-    st.subheader("💰 Select your budget and trip dates")
+    st.subheader("🏡 Filter Your Airbnb Preferences")
+    property_types = gdf['property_type'].unique().tolist()
+    room_types = gdf['room_type'].unique().tolist()
+    
+    selected_property_type = st.selectbox("Select property type", ["Any"] + property_types)
+    selected_room_type = st.selectbox("Select room type", ["Any"] + room_types)
+    
     budget = st.slider("What is your budget per night (in €)?", 50, 500, 150)
     start_date = st.date_input("Trip start date")
     end_date = st.date_input("Trip end date")
@@ -72,46 +78,36 @@ if selected_sights:
     # Step 4: Find Airbnbs in the area between selected sights
     st.subheader("🏡 Finding the best Airbnb for you...")
     gdf = gdf[gdf['price'] <= budget]  # Filter by budget
-    polygon = Polygon([(lon, lat) for _, lat, lon in selected_sights])
-    gdf = gdf[gdf.geometry.within(polygon)]  # Filter Airbnbs within the selected area
+    
+    if selected_property_type != "Any":
+        gdf = gdf[gdf['property_type'] == selected_property_type]
+    if selected_room_type != "Any":
+        gdf = gdf[gdf['room_type'] == selected_room_type]
+    
+    if len(selected_sights) >= 3:
+        polygon = Polygon([(lon, lat) for _, lat, lon in selected_sights])
+        gdf = gdf[gdf.geometry.within(polygon)]  # Filter Airbnbs within the selected area
+    else:
+        st.warning("⚠️ Select at least 3 sightseeing locations to filter Airbnbs by area.")
 
     # Step 5: Display results
     st.subheader("🌍 Map of Airbnb Listings near your selected sights")
     map_amsterdam = folium.Map(location=[52.365, 4.89], zoom_start=13)
     marker_cluster = MarkerCluster().add_to(map_amsterdam)
 
-    for sight, lat, lon in selected_sights:
-        folium.Marker(
-            location=[lat, lon],
-            popup=sight,
-            icon=folium.Icon(color="red", icon="info-sign")
-        ).add_to(map_amsterdam)
-    
     for _, row in gdf.iterrows():
+        popup_html = f"""
+        <strong>{row['name']}</strong><br>
+        <img src='{row['picture_url']}' width='250'><br>
+        <b>Price:</b> €{row['price']} per night<br>
+        <b>Type:</b> {row['property_type']} - {row['room_type']}<br>
+        <b>Bedrooms:</b> {row['bedrooms']} | <b>Bathrooms:</b> {row['bathrooms']} | <b>Beds:</b> {row['beds']}<br>
+        <b>Rating:</b> {row['review_scores_rating']} ⭐<br>
+        """
         folium.Marker(
             location=[row.latitude, row.longitude],
-            popup=f"Airbnb near selected area\nPrice: €{row['price']}",
+            popup=folium.Popup(popup_html, max_width=300),
             icon=folium.Icon(color="blue")
         ).add_to(marker_cluster)
-
-    folium_static(map_amsterdam)
     
-    # Step 6: Pros and Cons
-    st.subheader("📌 Pros and Cons of the Area")
-    pros_cons = {
-        "Rijksmuseum": {"Pros": "Cultural center, near museums", "Cons": "Busy area, expensive"},
-        "Anne Frank House": {"Pros": "Historic, central location", "Cons": "Crowded, limited availability"},
-        "Van Gogh Museum": {"Pros": "Art district, well-connected", "Cons": "Expensive restaurants"},
-        "Dam Square": {"Pros": "Lively, great public transport", "Cons": "Noisy at night"},
-        "Jordaan District": {"Pros": "Trendy, local shops", "Cons": "Fewer budget stays"},
-        "Vondelpark": {"Pros": "Peaceful, great for jogging", "Cons": "Far from nightlife"},
-        "Ajax Stadium": {"Pros": "Sports fans, modern area", "Cons": "Far from city center"},
-        "A'DAM Lookout": {"Pros": "Amazing views, modern area", "Cons": "Limited nightlife"},
-        "NEMO Science Museum": {"Pros": "Family-friendly, near city center", "Cons": "Not much nightlife"},
-        "The Heineken Experience": {"Pros": "Beer lovers, fun area", "Cons": "Touristy, crowded"},
-    }
-    for sight, _, _ in selected_sights:
-        if sight in pros_cons:
-            st.markdown(f"**{sight}**")
-            st.markdown(f"✅ **Pros:** {pros_cons[sight]['Pros']}")
-            st.markdown(f"❌ **Cons:** {pros_cons[sight]['Cons']}")
+    folium_static(map_amsterdam)
