@@ -20,11 +20,16 @@ gdf = load_data()
 
 # Sightseeing locations with images
 sightseeing_spots = {
-    "Rijksmuseum": (52.360001, 4.885278, "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Rijksmuseum_Amsterdam.jpg/800px-Rijksmuseum_Amsterdam.jpg"),
-    "Anne Frank House": (52.375218, 4.883977, "https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/Anne_Frank_House.jpg/800px-Anne_Frank_House.jpg"),
-    "Van Gogh Museum": (52.358416, 4.881077, "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Van_Gogh_Museum_Amsterdam.jpg/800px-Van_Gogh_Museum_Amsterdam.jpg"),
-    "Dam Square": (52.373058, 4.892557, "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Dam_Square_Amsterdam.jpg/800px-Dam_Square_Amsterdam.jpg"),
-    "Jordaan District": (52.379189, 4.880556, "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Jordaan_Amsterdam.jpg/800px-Jordaan_Amsterdam.jpg"),
+    "Rijksmuseum": (52.360001, 4.885278, "rijksmuseum.jpg"),
+    "Anne Frank House": (52.375218, 4.883977, "anne_frank_house.jpg"),
+    "Van Gogh Museum": (52.358416, 4.881077, "van_gogh_museum.jpg"),
+    "Dam Square": (52.373058, 4.892557, "dam_square.jpg"),
+    "Jordaan District": (52.379189, 4.880556, "jordaan.jpg"),
+    "Vondelpark": (52.358333, 4.868611, "vondelpark.jpg"),
+    "Ajax Stadium": (52.314167, 4.941389, "ajax_stadium.jpg"),
+    "A'DAM Lookout": (52.384409, 4.902568, "adam_lookout.jpg"),
+    "NEMO Science Museum": (52.374639, 4.912261, "nemo_museum.jpg"),
+    "The Heineken Experience": (52.357869, 4.891700, "heineken_experience.jpg"),
 }
 
 # Streamlit UI Customization
@@ -58,13 +63,25 @@ st.title("📍 Travel Planner: Find the Best Airbnb for Your Trip")
 # Step 1: User selects city
 city = st.selectbox("Which city are you visiting?", ["Amsterdam"], index=0)
 
-# Step 2: Show sightseeing options
-st.subheader("🎯 Select the sightseeing places you want to visit:")
 selected_sights = []
+
+sightseeing_list = list(sightseeing_spots.items())
+first_row = sightseeing_list[:5]
+second_row = sightseeing_list[5:]
+
+# First row (5 images)
 cols = st.columns(5)
-for col, (sight, (lat, lon, img)) in zip(cols, sightseeing_spots.items()):
+for col, (sight, (lat, lon, img)) in zip(cols, first_row):
     with col:
-        st.image(img, width=200)
+        st.image(img, width=250)
+        if st.checkbox(sight, key=sight):
+            selected_sights.append((sight, lat, lon, img))
+
+# Second row (5 images)
+cols = st.columns(5)
+for col, (sight, (lat, lon, img)) in zip(cols, second_row):
+    with col:
+        st.image(img, width=250)
         if st.checkbox(sight, key=sight):
             selected_sights.append((sight, lat, lon, img))
 
