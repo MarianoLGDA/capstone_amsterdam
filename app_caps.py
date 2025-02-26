@@ -32,19 +32,40 @@ sightseeing_spots = {
     "The Heineken Experience": (52.357869, 4.891700, "heineken_experience.jpg"),
 }
 
-# Streamlit UI Customization
 st.set_page_config(page_title="Travel Planner", page_icon="🏡", layout="wide")
+
+# Custom CSS for background, button colors, and fonts
 st.markdown(
     """
     <style>
-    body {
+    /* Background color */
+    .stApp {
         background-color: #FF5A5F;
-        color: white;
-        font-family: 'Arial', sans-serif;
     }
-    .stButton>button {
-        background-color: #FF385C;
+    
+    /* Text color */
+    h1, h2, h3, h4, h5, h6, p, label {
         color: white;
+    }
+    
+    /* Buttons */
+    .stButton>button {
+        background-color: #FF385C !important;
+        color: white !important;
+        border-radius: 10px;
+        font-size: 16px;
+        font-weight: bold;
+    }
+    
+    /* Sidebar background */
+    [data-testid="stSidebar"] {
+        background-color: #FF5A5F;
+    }
+
+    /* Dropdowns and select boxes */
+    [data-baseweb="select"] {
+        background-color: white !important;
+        border-radius: 5px !important;
     }
     </style>
     """,
