@@ -38,15 +38,27 @@ st.title("📍 Travel Planner: Find the Best Airbnb for Your Trip")
 # Step 1: User selects city
 city = st.selectbox("Which city are you visiting?", ["Amsterdam"], index=0)
 
-# Step 2: Show sightseeing options with images and checkboxes
+# Step 2: Show sightseeing options with images in a 5x2 grid
 st.subheader("🎯 Select the sightseeing places you want to visit:")
 selected_sights = []
 
-for sight, (lat, lon, img) in sightseeing_spots.items():
-    col1, col2 = st.columns([1, 3])
-    with col1:
-        st.image(img, width=100)
-    with col2:
+sightseeing_list = list(sightseeing_spots.items())
+first_row = sightseeing_list[:5]
+second_row = sightseeing_list[5:]
+
+# First row (5 images)
+cols = st.columns(5)
+for col, (sight, (lat, lon, img)) in zip(cols, first_row):
+    with col:
+        st.image(img, width=200)
+        if st.checkbox(sight, key=sight):
+            selected_sights.append((sight, lat, lon))
+
+# Second row (5 images)
+cols = st.columns(5)
+for col, (sight, (lat, lon, img)) in zip(cols, second_row):
+    with col:
+        st.image(img, width=200)
         if st.checkbox(sight, key=sight):
             selected_sights.append((sight, lat, lon))
 
