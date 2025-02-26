@@ -5,6 +5,7 @@ import geopandas as gpd
 import pandas as pd
 from shapely.geometry import Point, Polygon
 from streamlit_folium import folium_static
+from PIL import Image
 
 # Load Airbnb data from the processed dataset
 @st.cache_data
@@ -32,7 +33,34 @@ sightseeing_spots = {
     "The Heineken Experience": (52.357869, 4.891700, "heineken_experience.jpg"),
 }
 
-# Streamlit UI
+# Streamlit UI Customization
+st.set_page_config(page_title="Travel Planner", page_icon="🏡", layout="wide")
+st.markdown(
+    """
+    <style>
+    body {
+        font-family: 'Airbnb Cereal', sans-serif;
+    }
+    .main {
+        background-color: #FF5A5F;
+        color: white;
+    }
+    .stButton>button {
+        background-color: #FF385C;
+        color: white;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+# Load logos
+col1, col2, col3 = st.columns([1, 3, 1])
+with col1:
+    st.image("kpmg_logo.jpg", width=100)
+with col3:
+    st.image("airbnb_logo.jpg", width=100)
+
 st.title("📍 Travel Planner: Find the Best Airbnb for Your Trip")
 
 # Step 1: User selects city
@@ -50,17 +78,17 @@ second_row = sightseeing_list[5:]
 cols = st.columns(5)
 for col, (sight, (lat, lon, img)) in zip(cols, first_row):
     with col:
-        st.image(img, width=200)
+        st.image(img, width=250)
         if st.checkbox(sight, key=sight):
-            selected_sights.append((sight, lat, lon))
+            selected_sights.append((sight, lat, lon, img))
 
 # Second row (5 images)
 cols = st.columns(5)
 for col, (sight, (lat, lon, img)) in zip(cols, second_row):
     with col:
-        st.image(img, width=200)
+        st.image(img, width=250)
         if st.checkbox(sight, key=sight):
-            selected_sights.append((sight, lat, lon))
+            selected_sights.append((sight, lat, lon, img))
 
 # Step 3: Ask for property type, room type, budget, and dates
 if selected_sights:
@@ -75,26 +103,23 @@ if selected_sights:
     start_date = st.date_input("Trip start date")
     end_date = st.date_input("Trip end date")
 
-    # Step 4: Find Airbnbs in the area between selected sights
-    st.subheader("🏡 Finding the best Airbnb for you...")
-    gdf = gdf[gdf['price'] <= budget]  # Filter by budget
-    
-    if selected_property_type != "Any":
-        gdf = gdf[gdf['property_type'] == selected_property_type]
-    if selected_room_type != "Any":
-        gdf = gdf[gdf['room_type'] == selected_room_type]
-    
-    if len(selected_sights) >= 3:
-        polygon = Polygon([(lon, lat) for _, lat, lon in selected_sights])
-        gdf = gdf[gdf.geometry.within(polygon)]  # Filter Airbnbs within the selected area
-    else:
-        st.warning("⚠️ Select at least 3 sightseeing locations to filter Airbnbs by area.")
-
-    # Step 5: Display results
-    st.subheader("🌍 Map of Airbnb Listings near your selected sights")
+    # Create map
     map_amsterdam = folium.Map(location=[52.365, 4.89], zoom_start=13)
     marker_cluster = MarkerCluster().add_to(map_amsterdam)
-
+    
+    # Add sightseeing locations to the map
+    for sight, lat, lon, img in selected_sights:
+        popup_html = f"""
+        <strong>{sight}</strong><br>
+        <img src='{img}' width='300'>
+        """
+        folium.Marker(
+            location=[lat, lon],
+            popup=folium.Popup(popup_html, max_width=350),
+            icon=folium.Icon(color="red", icon="info-sign", icon_size=(40, 40))
+        ).add_to(map_amsterdam)
+    
+    # Add Airbnb markers
     for _, row in gdf.iterrows():
         popup_html = f"""
         <strong>{row['name']}</strong><br>
@@ -107,7 +132,8 @@ if selected_sights:
         folium.Marker(
             location=[row.latitude, row.longitude],
             popup=folium.Popup(popup_html, max_width=300),
-            icon=folium.Icon(color="blue")
+            icon=folium.Icon(color="orange", icon="home", prefix="fa")
         ).add_to(marker_cluster)
     
     folium_static(map_amsterdam)
+
