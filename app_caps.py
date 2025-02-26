@@ -52,6 +52,16 @@ st.markdown(
     h3, h4, h5, h6, p, label {
         color: #333333;
     }
+
+    /* Change font size and color of selectbox label */
+    div[data-testid="stSelectbox"] label {
+        font-size: 20px !important; /* Adjust size as needed */
+        color: #e8253f !important; /* Change color to red */
+        font-weight: bold; /* Optional: Make text bold */
+    }
+    </style>
+
+    }
     
     /* Buttons - changed to #e8253f */
     .stButton>button {
