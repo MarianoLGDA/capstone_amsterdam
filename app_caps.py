@@ -3,7 +3,7 @@ import folium
 from folium.plugins import MarkerCluster
 import geopandas as gpd
 import pandas as pd
-from shapely.geometry import Point
+from shapely.geometry import Point, Polygon
 from streamlit_folium import folium_static
 
 # Load Airbnb data from the processed dataset
@@ -18,18 +18,18 @@ def load_data():
 
 gdf = load_data()
 
-# Sightseeing locations (Replace with actual images and more sights)
+# Sightseeing locations with images
 sightseeing_spots = {
-    "Rijksmuseum": (52.360001, 4.885278),
-    "Anne Frank House": (52.375218, 4.883977),
-    "Van Gogh Museum": (52.358416, 4.881077),
-    "Dam Square": (52.373058, 4.892557),
-    "Jordaan District": (52.379189, 4.880556),
-    "Vondelpark": (52.358333, 4.868611),
-    "Ajax Stadium": (52.314167, 4.941389),
-    "A'DAM Lookout": (52.384409, 4.902568),
-    "NEMO Science Museum": (52.374639, 4.912261),
-    "The Heineken Experience": (52.357869, 4.891700),
+    "Rijksmuseum": (52.360001, 4.885278, "rijksmuseum.jpg"),
+    "Anne Frank House": (52.375218, 4.883977, "anne_frank_house.jpg"),
+    "Van Gogh Museum": (52.358416, 4.881077, "van_gogh_museum.jpg"),
+    "Dam Square": (52.373058, 4.892557, "dam_square.jpg"),
+    "Jordaan District": (52.379189, 4.880556, "jordaan.jpg"),
+    "Vondelpark": (52.358333, 4.868611, "vondelpark.jpg"),
+    "Ajax Stadium": (52.314167, 4.941389, "ajax_stadium.jpg"),
+    "A'DAM Lookout": (52.384409, 4.902568, "adam_lookout.jpg"),
+    "NEMO Science Museum": (52.374639, 4.912261, "nemo_museum.jpg"),
+    "The Heineken Experience": (52.357869, 4.891700, "heineken_experience.jpg"),
 }
 
 # Streamlit UI
@@ -38,13 +38,17 @@ st.title("📍 Travel Planner: Find the Best Airbnb for Your Trip")
 # Step 1: User selects city
 city = st.selectbox("Which city are you visiting?", ["Amsterdam"], index=0)
 
-# Step 2: Show sightseeing options with checkboxes
+# Step 2: Show sightseeing options with images and checkboxes
 st.subheader("🎯 Select the sightseeing places you want to visit:")
 selected_sights = []
 
-for sight, coords in sightseeing_spots.items():
-    if st.checkbox(sight, key=sight):
-        selected_sights.append((sight, coords))
+for sight, (lat, lon, img) in sightseeing_spots.items():
+    col1, col2 = st.columns([1, 3])
+    with col1:
+        st.image(img, width=100)
+    with col2:
+        if st.checkbox(sight, key=sight):
+            selected_sights.append((sight, lat, lon))
 
 # Step 3: Ask for budget and dates
 if selected_sights:
@@ -53,35 +57,28 @@ if selected_sights:
     start_date = st.date_input("Trip start date")
     end_date = st.date_input("Trip end date")
 
-    # Step 4: Find nearest Airbnbs
+    # Step 4: Find Airbnbs in the area between selected sights
     st.subheader("🏡 Finding the best Airbnb for you...")
     gdf = gdf[gdf['price'] <= budget]  # Filter by budget
-    top_airbnbs = []
-    for sight, coords in selected_sights:
-        sight_location = gpd.GeoSeries([Point(coords[1], coords[0])], crs="EPSG:4326")
-        gdf[f'distance_to_{sight}'] = gdf.geometry.distance(sight_location.iloc[0])
-        closest_airbnbs = gdf.nsmallest(5, f'distance_to_{sight}')
-        closest_airbnbs = closest_airbnbs.copy()
-        closest_airbnbs["sightseeing"] = sight
-        top_airbnbs.append(closest_airbnbs)
-    top_airbnbs_df = pd.concat(top_airbnbs)
+    polygon = Polygon([(lon, lat) for _, lat, lon in selected_sights])
+    gdf = gdf[gdf.geometry.within(polygon)]  # Filter Airbnbs within the selected area
 
     # Step 5: Display results
     st.subheader("🌍 Map of Airbnb Listings near your selected sights")
     map_amsterdam = folium.Map(location=[52.365, 4.89], zoom_start=13)
     marker_cluster = MarkerCluster().add_to(map_amsterdam)
 
-    for sight, coords in selected_sights:
+    for sight, lat, lon in selected_sights:
         folium.Marker(
-            location=[coords[0], coords[1]],
+            location=[lat, lon],
             popup=sight,
             icon=folium.Icon(color="red", icon="info-sign")
         ).add_to(map_amsterdam)
     
-    for _, row in top_airbnbs_df.iterrows():
+    for _, row in gdf.iterrows():
         folium.Marker(
             location=[row.latitude, row.longitude],
-            popup=f"Airbnb near {row['sightseeing']}\nPrice: €{row['price']}\nDistance: {row[f'distance_to_{row.sightseeing}']:.2f} meters",
+            popup=f"Airbnb near selected area\nPrice: €{row['price']}",
             icon=folium.Icon(color="blue")
         ).add_to(marker_cluster)
 
@@ -101,7 +98,7 @@ if selected_sights:
         "NEMO Science Museum": {"Pros": "Family-friendly, near city center", "Cons": "Not much nightlife"},
         "The Heineken Experience": {"Pros": "Beer lovers, fun area", "Cons": "Touristy, crowded"},
     }
-    for sight, _ in selected_sights:
+    for sight, _, _ in selected_sights:
         if sight in pros_cons:
             st.markdown(f"**{sight}**")
             st.markdown(f"✅ **Pros:** {pros_cons[sight]['Pros']}")
