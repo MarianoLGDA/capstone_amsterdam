@@ -58,7 +58,7 @@ st.markdown(
         font-size: 20px !important; /* Adjust size as needed */
         color: #e8253f !important; /* Change color to red */
         font-weight: bold; /* Optional: Make text bold */
-    }
+    
     </style>
 
     }
