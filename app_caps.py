@@ -38,20 +38,20 @@ st.set_page_config(page_title="Travel Planner", page_icon="🏡", layout="wide")
 st.markdown(
     """
     <style>
-    /* Background color */
+    /* Background color - changed to white */
     .stApp {
-        background-color: #FCFAFB;
+        background-color: #FFFFFF;
     }
     
-    /* Text color */
+    /* Text color - changed to dark grey */
     h1, h2, h3, h4, h5, h6, p, label {
         color: #333333;
     }
     
-    /* Buttons */
+    /* Buttons - changed to #e8253f */
     .stButton>button {
-        background-color: #FF385C !important;
-        color: #e8255c !important;
+        background-color: #e8253f !important;
+        color: white !important;
         border-radius: 10px;
         font-size: 16px;
         font-weight: bold;
@@ -71,6 +71,7 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
+
 
 # Load logos
 col1, col2, col3 = st.columns([1, 3, 1])
