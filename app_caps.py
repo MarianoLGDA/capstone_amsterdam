@@ -38,13 +38,18 @@ st.set_page_config(page_title="Travel Planner", page_icon="🏡", layout="wide")
 st.markdown(
     """
     <style>
-    /* Background color - changed to white */
+    /* Background color - remains white */
     .stApp {
         background-color: #FFFFFF;
     }
     
-    /* Text color - changed to dark grey */
-    h1, h2, h3, h4, h5, h6, p, label {
+    /* Title text color - changed to #e8253f */
+    h1, h2 {
+        color: #e8253f !important;
+    }
+    
+    /* Other text color - remains dark grey */
+    h3, h4, h5, h6, p, label {
         color: #333333;
     }
     
@@ -57,9 +62,9 @@ st.markdown(
         font-weight: bold;
     }
     
-    /* Sidebar background */
+    /* Sidebar background - changed to #e8253f */
     [data-testid="stSidebar"] {
-        background-color: #e8255c;
+        background-color: #e8253f !important;
     }
 
     /* Dropdowns and select boxes */
@@ -67,6 +72,13 @@ st.markdown(
         background-color: white !important;
         border-radius: 5px !important;
     }
+
+    /* Dropdown container (dark section) changed to #e8253f */
+    .stSelectbox {
+        background-color: #e8253f !important;
+        color: white !important;
+    }
+
     </style>
     """,
     unsafe_allow_html=True,
