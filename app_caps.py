@@ -73,30 +73,6 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Welcome message
-st.markdown(
-    """
-    ## 🌍 Welcome to SmartStay! 🚆
-    **Your AI-powered travel assistant for Interrail adventures!**
-    
-    Planning your European journey has never been easier. With SmartStay, you can:
-    - **Find the best Airbnb accommodations** tailored to your trip.
-    - **Discover top sightseeing spots** and stay near them.
-    - **Optimize your travel budget** with smart recommendations.
-    
-    Whether you're exploring **Amsterdam** or **Barcelona**, SmartStay helps you **save time and money** while ensuring an amazing experience!
-    """
-)
-
-# Load logos
-col1, col2, col3 = st.columns([1, 3, 1])
-with col1:
-    st.image("kpmg_logo.jpg", width=100)
-with col3:
-    st.image("airbnb_logo.jpg", width=100)
-
-st.title("SmartStay: AI-Powered Interrail Accommodation")
-
 # Step 1: User selects city
 city = st.selectbox("Which city are you planning to visit?", ["Amsterdam", "Barcelona"], index=0)
 gdf = load_data(city)
@@ -123,13 +99,23 @@ for col, (sight, (lat, lon, img)) in zip(cols, second_row):
         if st.checkbox(sight, key=sight):
             selected_sights.append((sight, lat, lon, img))
 
-# Display map with sightseeing locations and Airbnb listings
 if selected_sights:
+    st.subheader("🏡 Filter Your Airbnb Preferences")
+    selected_polygon = Polygon([(lat, lon) for _, lat, lon, _ in selected_sights])
+    gdf = gdf[gdf.geometry.within(selected_polygon)]
+    property_types = gdf['property_type'].unique().tolist()
+    room_types = gdf['room_type'].unique().tolist()
+    
+    selected_property_type = st.selectbox("Select property type", ["Any"] + property_types)
+    selected_room_type = st.selectbox("Select room type", ["Any"] + room_types)
+    budget = st.slider("What is your budget per night (in €)?", 50, 500, 150)
+    
+    filtered_gdf = gdf[(gdf['price'] <= budget)]
+    
     st.write("### 🗺️ Nearby Airbnb Listings")
     map_city = folium.Map(location=[gdf.latitude.mean(), gdf.longitude.mean()], zoom_start=13)
     marker_cluster = MarkerCluster().add_to(map_city)
     
-    # Add sightseeing locations
     for sight, lat, lon, img in selected_sights:
         popup_html = f"""
         <strong>{sight}</strong><br>
@@ -141,8 +127,7 @@ if selected_sights:
             icon=folium.Icon(color="red", icon="info-sign")
         ).add_to(map_city)
     
-    # Add Airbnb markers
-    for _, row in gdf.iterrows():
+    for _, row in filtered_gdf.iterrows():
         popup_html = f"""
         <strong>{row['name']}</strong><br>
         <img src='{row['picture_url']}' width='250'><br>
