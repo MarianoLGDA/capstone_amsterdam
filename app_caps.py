@@ -123,3 +123,15 @@ for col, (sight, (lat, lon, img)) in zip(cols, second_row):
         if st.checkbox(sight, key=sight):
             selected_sights.append((sight, lat, lon, img))
 
+# Ensure filters and maps appear after selecting sightseeing spots
+if selected_sights:
+    st.subheader("🏡 Filter Your Airbnb Preferences")
+    property_types = gdf['property_type'].unique().tolist()
+    room_types = gdf['room_type'].unique().tolist()
+    
+    selected_property_type = st.selectbox("Select property type", ["Any"] + property_types)
+    selected_room_type = st.selectbox("Select room type", ["Any"] + room_types)
+    budget = st.slider("What is your budget per night (in €)?", 50, 500, 150)
+    
+    st.write("### 📍 Here are the best accommodations based on your selections:")
+
