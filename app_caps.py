@@ -79,10 +79,12 @@ for col, (sight, (lat, lon, img)) in zip(cols, first_row):
     unique_key = f"{sight}_row1"
     with col:
         st.image(img, width=200)
+        if st.checkbox(sight, key=f'{sight}_unique'):
         if st.checkbox(sight, key=unique_key):
             selected_sights.append((sight, lat, lon, img))
     with col:
         st.image(img, width=200)
+        if st.checkbox(sight, key=f'{sight}_unique'):
         if st.checkbox(sight, key=sight):
             selected_sights.append((sight, lat, lon, img))
 
@@ -91,14 +93,17 @@ for col, (sight, (lat, lon, img)) in zip(cols, second_row):
     unique_key = f"{sight}_row2"
     with col:
         st.image(img, width=200)
+        if st.checkbox(sight, key=f'{sight}_unique'):
         if st.checkbox(sight, key=unique_key):
             selected_sights.append((sight, lat, lon, img))
     with col:
         st.image(img, width=200)
+        if st.checkbox(sight, key=f'{sight}_unique'):
         if st.checkbox(sight, key=sight):
             selected_sights.append((sight, lat, lon, img))
     with col:
         st.image(img, width=200)
+        if st.checkbox(sight, key=f'{sight}_unique'):
         if st.checkbox(sight, key=sight):
             selected_sights.append((sight, lat, lon, img))
 
