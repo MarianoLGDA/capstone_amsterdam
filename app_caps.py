@@ -3,7 +3,7 @@ import folium
 from folium.plugins import MarkerCluster
 import geopandas as gpd
 import pandas as pd
-from shapely.geometry import Point
+from shapely.geometry import Point, Polygon
 from streamlit_folium import folium_static
 
 # Load Airbnb data based on city selection
@@ -47,7 +47,16 @@ sightseeing_spots = {
     }
 }
 
-st.set_page_config(page_title="SmartStay: AI-Powered Interrail Accommodation", page_icon="🚆", layout="wide")
+st.set_page_config(page_title="Travel Planner", page_icon="🏡", layout="wide")
+
+# Load logos
+col1, col2, col3 = st.columns([1, 3, 1])
+with col1:
+    st.image("kpmg_logo.jpg", width=100)
+with col3:
+    st.image("airbnb_logo.jpg", width=100)
+
+st.title("SmartStay: AI-Powered Interrail Accommodation")
 
 # Step 1: User selects city
 city = st.selectbox("Which city are you planning to visit?", ["Amsterdam", "Barcelona"], index=0)
@@ -55,26 +64,14 @@ gdf = load_data(city)
 
 st.subheader("🎯 Select the sightseeing places you want to visit:")
 selected_sights = []
-sightseeing_list = list(sightseeing_spots[city].items())
-first_row = sightseeing_list[:5]
-second_row = sightseeing_list[5:]
-
-# First row of sightseeing images
 cols = st.columns(5)
-for col, (sight, (lat, lon, img)) in zip(cols, first_row):
+for col, (sight, (lat, lon, img)) in zip(cols, sightseeing_spots[city].items()):
     with col:
-        st.image(img, width=250)
+        st.image(img, width=200)
         if st.checkbox(sight, key=sight):
             selected_sights.append((sight, lat, lon, img))
 
-# Second row of sightseeing images
-cols = st.columns(5)
-for col, (sight, (lat, lon, img)) in zip(cols, second_row):
-    with col:
-        st.image(img, width=250)
-        if st.checkbox(sight, key=sight):
-            selected_sights.append((sight, lat, lon, img))
-
+# Step 3: Ask for property type, room type, budget
 if selected_sights:
     st.subheader("🏡 Filter Your Airbnb Preferences")
     property_types = gdf['property_type'].unique().tolist()
@@ -84,12 +81,25 @@ if selected_sights:
     selected_room_type = st.selectbox("Select room type", ["Any"] + room_types)
     budget = st.slider("What is your budget per night (in €)?", 50, 500, 150)
     
+    # Apply filtering
     filtered_gdf = gdf[gdf['price'] <= budget]
+    if selected_property_type != "Any":
+        filtered_gdf = filtered_gdf[filtered_gdf['property_type'] == selected_property_type]
+    if selected_room_type != "Any":
+        filtered_gdf = filtered_gdf[filtered_gdf['room_type'] == selected_room_type]
     
-    st.write("### 🗺️ Nearby Airbnb Listings")
+    # Filter Airbnbs within the sightseeing area
+    if len(selected_sights) >= 3:
+        polygon = Polygon([(lon, lat) for _, lat, lon, _ in selected_sights])
+        filtered_gdf = filtered_gdf[filtered_gdf.geometry.within(polygon)]
+    else:
+        st.warning("⚠️ Select at least 3 sightseeing locations to filter Airbnbs by area.")
+
+    # Display map
     map_city = folium.Map(location=[gdf.latitude.mean(), gdf.longitude.mean()], zoom_start=13)
     marker_cluster = MarkerCluster().add_to(map_city)
     
+    # Add sightseeing locations
     for sight, lat, lon, img in selected_sights:
         popup_html = f"""
         <strong>{sight}</strong><br>
@@ -101,11 +111,15 @@ if selected_sights:
             icon=folium.Icon(color="red", icon="info-sign")
         ).add_to(map_city)
     
+    # Add Airbnb markers
     for _, row in filtered_gdf.iterrows():
         popup_html = f"""
         <strong>{row['name']}</strong><br>
         <img src='{row['picture_url']}' width='250'><br>
         <b>Price:</b> €{row['price']} per night<br>
+        <b>Type:</b> {row['property_type']} - {row['room_type']}<br>
+        <b>Bedrooms:</b> {row['bedrooms']} | <b>Bathrooms:</b> {row['bathrooms']} | <b>Beds:</b> {row['beds']}<br>
+        <b>Rating:</b> {row['review_scores_rating']} ⭐<br>
         """
         folium.Marker(
             location=[row.latitude, row.longitude],
