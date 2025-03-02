@@ -80,11 +80,13 @@ for col, (sight, (lat, lon, img)) in zip(cols, first_row):
     with col:
         st.image(img, width=200)
         if st.checkbox(sight, key=f'{sight}_unique'):
+            selected_sights.append((sight, lat, lon, img)):
         if st.checkbox(sight, key=unique_key):
             selected_sights.append((sight, lat, lon, img))
     with col:
         st.image(img, width=200)
         if st.checkbox(sight, key=f'{sight}_unique'):
+            selected_sights.append((sight, lat, lon, img)):
         if st.checkbox(sight, key=sight):
             selected_sights.append((sight, lat, lon, img))
 
@@ -94,16 +96,19 @@ for col, (sight, (lat, lon, img)) in zip(cols, second_row):
     with col:
         st.image(img, width=200)
         if st.checkbox(sight, key=f'{sight}_unique'):
+            selected_sights.append((sight, lat, lon, img)):
         if st.checkbox(sight, key=unique_key):
             selected_sights.append((sight, lat, lon, img))
     with col:
         st.image(img, width=200)
         if st.checkbox(sight, key=f'{sight}_unique'):
+            selected_sights.append((sight, lat, lon, img)):
         if st.checkbox(sight, key=sight):
             selected_sights.append((sight, lat, lon, img))
     with col:
         st.image(img, width=200)
         if st.checkbox(sight, key=f'{sight}_unique'):
+            selected_sights.append((sight, lat, lon, img)):
         if st.checkbox(sight, key=sight):
             selected_sights.append((sight, lat, lon, img))
 
@@ -164,6 +169,7 @@ if selected_sights:
         ).add_to(marker_cluster)
     
     folium_static(map_city)
+
 
 
 
