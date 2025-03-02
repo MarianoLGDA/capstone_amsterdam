@@ -3,7 +3,7 @@ import folium
 from folium.plugins import MarkerCluster
 import geopandas as gpd
 import pandas as pd
-from shapely.geometry import Point, Polygon
+from shapely.geometry import Point
 from streamlit_folium import folium_static
 
 # Load Airbnb data based on city selection
@@ -49,30 +49,6 @@ sightseeing_spots = {
 
 st.set_page_config(page_title="SmartStay: AI-Powered Interrail Accommodation", page_icon="🚆", layout="wide")
 
-# Apply new color theme
-st.markdown(
-    """
-    <style>
-    .stApp {
-        background-color: #1E1E2F;
-        color: #EAEAEA;
-    }
-    h1, h2, h3, h4, h5, h6, p, label {
-        color: #FFD700;
-    }
-    .stButton>button {
-        background-color: #FF5733;
-        color: white;
-        border-radius: 8px;
-    }
-    [data-testid="stSidebar"] {
-        background-color: #25274D;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
-
 # Step 1: User selects city
 city = st.selectbox("Which city are you planning to visit?", ["Amsterdam", "Barcelona"], index=0)
 gdf = load_data(city)
@@ -101,8 +77,6 @@ for col, (sight, (lat, lon, img)) in zip(cols, second_row):
 
 if selected_sights:
     st.subheader("🏡 Filter Your Airbnb Preferences")
-    selected_polygon = Polygon([(lat, lon) for _, lat, lon, _ in selected_sights])
-    gdf = gdf[gdf.geometry.within(selected_polygon)]
     property_types = gdf['property_type'].unique().tolist()
     room_types = gdf['room_type'].unique().tolist()
     
@@ -110,7 +84,7 @@ if selected_sights:
     selected_room_type = st.selectbox("Select room type", ["Any"] + room_types)
     budget = st.slider("What is your budget per night (in €)?", 50, 500, 150)
     
-    filtered_gdf = gdf[(gdf['price'] <= budget)]
+    filtered_gdf = gdf[gdf['price'] <= budget]
     
     st.write("### 🗺️ Nearby Airbnb Listings")
     map_city = folium.Map(location=[gdf.latitude.mean(), gdf.longitude.mean()], zoom_start=13)
