@@ -133,8 +133,18 @@ if selected_sights:
     selected_room_type = st.selectbox("Select room type", ["Any"] + room_types)
     budget = st.slider("What is your budget per night (in €)?", 50, 500, 150)
     
-    # Display map
+    # Display map with sightseeing locations
     st.write("### 🗺️ Nearby Airbnb Listings")
     map_city = folium.Map(location=[gdf.latitude.mean(), gdf.longitude.mean()], zoom_start=13)
+    marker_cluster = MarkerCluster().add_to(map_city)
+    
+    # Add selected sightseeing locations to map
+    for sight, lat, lon, img in selected_sights:
+        folium.Marker(
+            location=[lat, lon],
+            popup=folium.Popup(f"<strong>{sight}</strong><br><img src='{img}' width='200'>", max_width=250),
+            icon=folium.Icon(color="red", icon="info-sign")
+        ).add_to(map_city)
+    
     folium_static(map_city)
 
