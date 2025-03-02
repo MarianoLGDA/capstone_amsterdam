@@ -47,7 +47,47 @@ sightseeing_spots = {
     }
 }
 
-st.set_page_config(page_title="Travel Planner", page_icon="🏡", layout="wide")
+st.set_page_config(page_title="SmartStay: AI-Powered Interrail Accommodation", page_icon="🚆", layout="wide")
+
+# Apply new color theme
+st.markdown(
+    """
+    <style>
+    .stApp {
+        background-color: #1E1E2F;
+        color: #EAEAEA;
+    }
+    h1, h2, h3, h4, h5, h6, p, label {
+        color: #FFD700;
+    }
+    .stButton>button {
+        background-color: #FF5733;
+        color: white;
+        border-radius: 8px;
+    }
+    [data-testid="stSidebar"] {
+        background-color: #25274D;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+# Welcome message
+st.markdown(
+    """
+    ## 🌍 Welcome to SmartStay! 🚆
+    **Your AI-powered travel assistant for Interrail adventures!**
+    
+    Planning your European journey has never been easier. With SmartStay, you can:
+    - **Find the best Airbnb accommodations** tailored to your trip.
+    - **Discover top sightseeing spots** and stay near them.
+    - **Optimize your travel budget** with smart recommendations.
+    
+    Whether you're exploring **Amsterdam** or **Barcelona**, SmartStay helps you **save time and money** while ensuring an amazing experience!
+    """
+)
+
 
 # Load logos
 col1, col2, col3 = st.columns([1, 3, 1])
