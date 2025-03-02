@@ -76,6 +76,11 @@ second_row = sightseeing_list[5:]
 
 cols = st.columns(5)
 for col, (sight, (lat, lon, img)) in zip(cols, first_row):
+    unique_key = f"{sight}_row1"
+    with col:
+        st.image(img, width=200)
+        if st.checkbox(sight, key=unique_key):
+            selected_sights.append((sight, lat, lon, img))
     with col:
         st.image(img, width=200)
         if st.checkbox(sight, key=sight):
@@ -83,6 +88,11 @@ for col, (sight, (lat, lon, img)) in zip(cols, first_row):
 
 cols = st.columns(5)
 for col, (sight, (lat, lon, img)) in zip(cols, second_row):
+    unique_key = f"{sight}_row2"
+    with col:
+        st.image(img, width=200)
+        if st.checkbox(sight, key=unique_key):
+            selected_sights.append((sight, lat, lon, img))
     with col:
         st.image(img, width=200)
         if st.checkbox(sight, key=sight):
@@ -149,6 +159,7 @@ if selected_sights:
         ).add_to(marker_cluster)
     
     folium_static(map_city)
+
 
 
 
