@@ -133,5 +133,8 @@ if selected_sights:
     selected_room_type = st.selectbox("Select room type", ["Any"] + room_types)
     budget = st.slider("What is your budget per night (in €)?", 50, 500, 150)
     
-    st.write("### 📍 Here are the best accommodations based on your selections:")
+    # Display map
+    st.write("### 🗺️ Nearby Airbnb Listings")
+    map_city = folium.Map(location=[gdf.latitude.mean(), gdf.longitude.mean()], zoom_start=13)
+    folium_static(map_city)
 
