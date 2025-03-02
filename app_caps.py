@@ -123,28 +123,37 @@ for col, (sight, (lat, lon, img)) in zip(cols, second_row):
         if st.checkbox(sight, key=sight):
             selected_sights.append((sight, lat, lon, img))
 
-# Ensure filters and maps appear after selecting sightseeing spots
+# Display map with sightseeing locations and Airbnb listings
 if selected_sights:
-    st.subheader("🏡 Filter Your Airbnb Preferences")
-    property_types = gdf['property_type'].unique().tolist()
-    room_types = gdf['room_type'].unique().tolist()
-    
-    selected_property_type = st.selectbox("Select property type", ["Any"] + property_types)
-    selected_room_type = st.selectbox("Select room type", ["Any"] + room_types)
-    budget = st.slider("What is your budget per night (in €)?", 50, 500, 150)
-    
-    # Display map with sightseeing locations
     st.write("### 🗺️ Nearby Airbnb Listings")
     map_city = folium.Map(location=[gdf.latitude.mean(), gdf.longitude.mean()], zoom_start=13)
     marker_cluster = MarkerCluster().add_to(map_city)
     
-    # Add selected sightseeing locations to map
+    # Add sightseeing locations
     for sight, lat, lon, img in selected_sights:
+        popup_html = f"""
+        <strong>{sight}</strong><br>
+        <img src='{img}' width='250'>
+        """
         folium.Marker(
             location=[lat, lon],
-            popup=folium.Popup(f"<strong>{sight}</strong><br><img src='{img}' width='200'>", max_width=250),
+            popup=folium.Popup(popup_html, max_width=300),
             icon=folium.Icon(color="red", icon="info-sign")
         ).add_to(map_city)
     
+    # Add Airbnb markers
+    for _, row in gdf.iterrows():
+        popup_html = f"""
+        <strong>{row['name']}</strong><br>
+        <img src='{row['picture_url']}' width='250'><br>
+        <b>Price:</b> €{row['price']} per night<br>
+        """
+        folium.Marker(
+            location=[row.latitude, row.longitude],
+            popup=folium.Popup(popup_html, max_width=300),
+            icon=folium.Icon(color="orange", icon="home", prefix="fa")
+        ).add_to(marker_cluster)
+    
     folium_static(map_city)
+
 
