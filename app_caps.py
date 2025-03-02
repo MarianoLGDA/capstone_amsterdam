@@ -57,6 +57,12 @@ with col3:
     st.image("airbnb_logo.jpg", width=100)
 
 st.title("SmartStay: AI-Powered Interrail Accommodation")
+st.markdown("""
+Welcome to SmartStay! 🚆✨
+Your AI-powered travel planner for seamless Interrail trips.
+Find the best Airbnb accommodations near your favorite sightseeing spots in Amsterdam and Barcelona, all tailored to your budget and preferences. 
+Enjoy your journey with ease and discover your perfect stay with SmartStay! 🌍🏡
+""")
 
 # Step 1: User selects city
 city = st.selectbox("Which city are you planning to visit?", ["Amsterdam", "Barcelona"], index=0)
@@ -64,8 +70,23 @@ gdf = load_data(city)
 
 st.subheader("🎯 Select the sightseeing places you want to visit:")
 selected_sights = []
+sightseeing_list = list(sightseeing_spots[city].items())
+first_row = sightseeing_list[:5]
+second_row = sightseeing_list[5:]
+
 cols = st.columns(5)
-for col, (sight, (lat, lon, img)) in zip(cols, sightseeing_spots[city].items()):
+for col, (sight, (lat, lon, img)) in zip(cols, first_row):
+    with col:
+        st.image(img, width=200)
+        if st.checkbox(sight, key=sight):
+            selected_sights.append((sight, lat, lon, img))
+
+cols = st.columns(5)
+for col, (sight, (lat, lon, img)) in zip(cols, second_row):
+    with col:
+        st.image(img, width=200)
+        if st.checkbox(sight, key=sight):
+            selected_sights.append((sight, lat, lon, img))
     with col:
         st.image(img, width=200)
         if st.checkbox(sight, key=sight):
@@ -128,5 +149,7 @@ if selected_sights:
         ).add_to(marker_cluster)
     
     folium_static(map_city)
+
+
 
 
