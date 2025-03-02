@@ -64,10 +64,23 @@ gdf = load_data(city)
 
 st.subheader("🎯 Select the sightseeing places you want to visit:")
 selected_sights = []
+sightseeing_list = list(sightseeing_spots[city].items())
+first_row = sightseeing_list[:5]
+second_row = sightseeing_list[5:]
+
+# First row of sightseeing images
 cols = st.columns(5)
-for col, (sight, (lat, lon, img)) in zip(cols, sightseeing_spots[city].items()):
+for col, (sight, (lat, lon, img)) in zip(cols, first_row):
     with col:
-        st.image(img, width=200)
+        st.image(img, width=250)
+        if st.checkbox(sight, key=sight):
+            selected_sights.append((sight, lat, lon, img))
+
+# Second row of sightseeing images
+cols = st.columns(5)
+for col, (sight, (lat, lon, img)) in zip(cols, second_row):
+    with col:
+        st.image(img, width=250)
         if st.checkbox(sight, key=sight):
             selected_sights.append((sight, lat, lon, img))
 
