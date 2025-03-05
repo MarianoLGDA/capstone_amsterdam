@@ -53,105 +53,108 @@ def load_data(city):
 
 st.subheader("💬 SmartStay AI Chatbot: Plan Your Trip!")
 
-# Random greetings for different interactions
-greetings = [
-    "Hi, Interrail traveler! 🌍 Where are you headed?",
-    "Welcome, globetrotter! ✈️ Which city will you explore?",
-    "Hello, adventurer! 🚆 Where is your next stop?",
-    "Hey, traveler! 🏙️ Are you visiting Amsterdam or Barcelona?",
-    "Greetings, explorer! 🗺️ Let's plan your stay!"
-]
+# Initialize session state variables
+if "step" not in st.session_state:
+    st.session_state.step = "ask_name"
+if "name" not in st.session_state:
+    st.session_state.name = ""
+if "city" not in st.session_state:
+    st.session_state.city = ""
+if "selected_sights" not in st.session_state:
+    st.session_state.selected_sights = []
+if "budget" not in st.session_state:
+    st.session_state.budget = None
+if "property_type" not in st.session_state:
+    st.session_state.property_type = []
+if "review_score" not in st.session_state:
+    st.session_state.review_score = 80
+if "gdf" not in st.session_state:
+    st.session_state.gdf = None
 
-# Initialize chat history
-if "messages" not in st.session_state:
-    st.session_state.messages = [{"role": "assistant", "content": random.choice(greetings)}]
+# Step 1: Ask for the user's name
+if st.session_state.step == "ask_name":
+    user_name = st.text_input("👋 Hey traveler! What's your name?")
+    if user_name:
+        st.session_state.name = user_name
+        st.session_state.step = "ask_city"
+        st.rerun()
 
-# Display chat history
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.write(message["content"])
+# Step 2: Ask for the city
+elif st.session_state.step == "ask_city":
+    st.write(f"Nice to meet you, {st.session_state.name}! 😊")
+    city = st.selectbox("🌍 Which city are you traveling to?", ["Amsterdam", "Barcelona"])
+    if st.button("Confirm City"):
+        st.session_state.city = city
+        st.session_state.gdf = load_data(city)
+        st.session_state.step = "ask_sightseeing"
+        st.rerun()
 
-# User input field
-user_input = st.chat_input("Type your answer here...")
+# Step 3: Ask for sightseeing locations
+elif st.session_state.step == "ask_sightseeing":
+    st.write(f"Awesome, {st.session_state.name}! 🏙️ Now, select your must-visit places in {st.session_state.city}.")
+    
+    selected_sights = st.multiselect("🏛️ Select your sightseeing spots:", 
+                                     list(sightseeing_spots[st.session_state.city].keys()))
+    
+    if st.button("Confirm Sightseeing"):
+        st.session_state.selected_sights = selected_sights
+        st.session_state.step = "ask_budget"
+        st.rerun()
 
-if user_input:
-    # Add user message to history
-    st.session_state.messages.append({"role": "user", "content": user_input})
+# Step 4: Ask for budget
+elif st.session_state.step == "ask_budget":
+    st.write(f"Great choices, {st.session_state.name}! 💰 Now, what's your budget per night?")
+    budget = st.slider("Select your budget (€)", 50, 500, 150)
 
-    # Process user response
-    city = user_input.strip().title()
-    if city not in ["Amsterdam", "Barcelona"]:
-        bot_reply = "Sorry, we currently support only Amsterdam and Barcelona. Please choose one of these cities. 😊"
-    else:
-        bot_reply = f"Great! You're visiting **{city}**. Now, select the sightseeing places you want to visit!"
+    if st.button("Confirm Budget"):
+        st.session_state.budget = budget
+        st.session_state.step = "ask_property_type"
+        st.rerun()
 
-        # Load city-specific data
-        gdf = load_data(city)
+# Step 5: Ask for property type
+elif st.session_state.step == "ask_property_type":
+    st.write(f"Almost there, {st.session_state.name}! 🏡 What type of property do you prefer?")
+    property_types = st.session_state.gdf['property_type'].unique().tolist()
+    selected_property_type = st.multiselect("Select property type(s):", property_types)
 
-        # Display sightseeing choices
-        selected_sights = []
-        sightseeing_list = list(sightseeing_spots[city].items())
-        first_row = sightseeing_list[:5]
-        second_row = sightseeing_list[5:]
+    if st.button("Confirm Property Type"):
+        st.session_state.property_type = selected_property_type
+        st.session_state.step = "ask_review_score"
+        st.rerun()
 
-        # Sightseeing images in two rows
-        cols = st.columns(5)
-        for col, (sight, (lat, lon, img)) in zip(cols, first_row):
-            with col:
-                st.image(img, width=200)
-                if st.checkbox(sight, key=sight):
-                    selected_sights.append((sight, lat, lon, img))
+# Step 6: Ask for review score
+elif st.session_state.step == "ask_review_score":
+    st.write(f"Finally, {st.session_state.name}, how important are reviews to you? ⭐")
+    review_score = st.slider("Minimum review score:", 50, 100, 80)
 
-        cols = st.columns(5)
-        for col, (sight, (lat, lon, img)) in zip(cols, second_row):
-            with col:
-                st.image(img, width=200)
-                if st.checkbox(sight, key=sight):
-                    selected_sights.append((sight, lat, lon, img))
+    if st.button("Find Best Stays"):
+        st.session_state.review_score = review_score
+        st.session_state.step = "show_results"
+        st.rerun()
 
-        # Ask for travel preferences
-        bot_reply += "\n\n💰 **What is your budget per night (€)?**"
-        budget = st.number_input("Enter your budget:", min_value=50, max_value=500, step=10)
+# Step 7: Show map with filtered Airbnbs
+elif st.session_state.step == "show_results":
+    st.write(f"Here are your best options in {st.session_state.city}, {st.session_state.name}! 🎉")
 
-        bot_reply += "\n\n🏡 **What type of property do you want?**"
-        property_types = gdf['property_type'].unique().tolist()
-        selected_property_type = st.multiselect("Select property type(s):", property_types)
+    filtered_gdf = st.session_state.gdf[
+        (st.session_state.gdf['price'] <= st.session_state.budget) & 
+        (st.session_state.gdf['review_scores_rating'] >= st.session_state.review_score)
+    ]
+    
+    if st.session_state.property_type:
+        filtered_gdf = filtered_gdf[filtered_gdf['property_type'].isin(st.session_state.property_type)]
 
-        bot_reply += "\n\n⭐ **Minimum review score?**"
-        review_score = st.slider("Select a minimum review score:", 50, 100, 80)
+    map_city = folium.Map(location=[filtered_gdf.latitude.mean(), filtered_gdf.longitude.mean()], zoom_start=13)
+    marker_cluster = MarkerCluster().add_to(map_city)
 
-        # Filter Airbnbs
-        filtered_gdf = gdf[gdf['price'] <= budget]
-        if selected_property_type:
-            filtered_gdf = filtered_gdf[gdf['property_type'].isin(selected_property_type)]
-        filtered_gdf = filtered_gdf[gdf['review_scores_rating'] >= review_score]
+    for _, row in filtered_gdf.iterrows():
+        folium.Marker(
+            location=[row.latitude, row.longitude],
+            popup=f"{row['name']}, €{row['price']} per night",
+            icon=folium.Icon(color="orange", icon="home", prefix="fa")
+        ).add_to(marker_cluster)
 
-        # Display the map with Airbnb recommendations
-        if len(selected_sights) >= 3:
-            polygon = Polygon([(lon, lat) for _, lat, lon, _ in selected_sights])
-            filtered_gdf = filtered_gdf[filtered_gdf.geometry.within(polygon)]
-
-            bot_reply += "\n\n📍 **Here are the best accommodations within your selected zone:**"
-            map_city = folium.Map(location=[gdf.latitude.mean(), gdf.longitude.mean()], zoom_start=13)
-            marker_cluster = MarkerCluster().add_to(map_city)
-
-            for _, row in filtered_gdf.iterrows():
-                folium.Marker(
-                    location=[row.latitude, row.longitude],
-                    popup=f"{row['name']}, €{row['price']} per night",
-                    icon=folium.Icon(color="orange", icon="home", prefix="fa")
-                ).add_to(marker_cluster)
-
-            folium_static(map_city)
-
-    # Append bot response to chat history
-    st.session_state.messages.append({"role": "assistant", "content": bot_reply})
-
-    # Display bot response
-    with st.chat_message("assistant"):
-        st.write(bot_reply)
-
-    time.sleep(1)
+    folium_static(map_city)
 
 
 
