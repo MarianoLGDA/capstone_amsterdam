@@ -183,6 +183,54 @@ if selected_sights:
     folium_static(map_city)
 
 
+import os
+import openai
+import time
+
+# Load OpenAI API key securely (Replace this with environment variable method)
+openai.api_key = os.getenv("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")  # Make sure to set this up securely!
+
+st.subheader("💬 SmartStay AI Chatbot: Plan Your Trip!")
+
+# Initialize chat history if not already done
+if "messages" not in st.session_state:
+    st.session_state.messages = [
+        {"role": "assistant", "content": "Hello! I'm your AI travel planner. Where are you planning to travel?"}
+    ]
+
+# Display chat history
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.write(message["content"])
+
+# User input field
+user_input = st.chat_input("Type your answer here...")
+
+if user_input:
+    # Add user message to history
+    st.session_state.messages.append({"role": "user", "content": user_input})
+
+    # Generate OpenAI response with context
+    response = openai.ChatCompletion.create(
+        model="gpt-4-turbo",
+        messages=st.session_state.messages
+    )
+
+    bot_reply = response["choices"][0]["message"]["content"]
+
+    # Add bot response to chat history
+    st.session_state.messages.append({"role": "assistant", "content": bot_reply})
+
+    # Display bot response
+    with st.chat_message("assistant"):
+        st.write(bot_reply)
+
+    # Simulate typing effect
+    time.sleep(1)
+
+
+
+
 
 
 
