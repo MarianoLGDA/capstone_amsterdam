@@ -11,7 +11,7 @@ from folium.plugins import MarkerCluster
 from streamlit_folium import folium_static
 
 # Set OpenAI API Key securely
-openai.api_key = os.getenv("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")
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # Sightseeing locations for each city
 sightseeing_spots = {
@@ -46,6 +46,10 @@ sightseeing_spots = {
 def load_data(city):
     file_path = f"df_{city.lower()}.csv"
     df = pd.read_csv(file_path)
+    
+    # Ensure lat/lon are valid
+    df = df.dropna(subset=["latitude", "longitude"])
+    
     gdf = gpd.GeoDataFrame(
         df, geometry=gpd.points_from_xy(df.longitude, df.latitude), crs="EPSG:4326"
     )
@@ -89,19 +93,38 @@ elif st.session_state.step == "ask_city":
         st.session_state.step = "ask_sightseeing"
         st.rerun()
 
-# Step 3: Ask for sightseeing locations
+# Step 3: Ask for sightseeing locations (2 rows, 5 per row)
 elif st.session_state.step == "ask_sightseeing":
     st.write(f"Awesome, {st.session_state.name}! 🏙️ Now, select your must-visit places in {st.session_state.city}.")
     
-    selected_sights = st.multiselect("🏛️ Select your sightseeing spots:", 
-                                     list(sightseeing_spots[st.session_state.city].keys()))
+    sightseeing_list = list(sightseeing_spots[st.session_state.city].items())
+    first_row = sightseeing_list[:5]
+    second_row = sightseeing_list[5:]
+
+    selected_sights = []
     
+    # First row of sightseeing options
+    cols = st.columns(5)
+    for col, (sight, (lat, lon, img)) in zip(cols, first_row):
+        with col:
+            st.image(img, width=200)
+            if st.checkbox(sight, key=sight):
+                selected_sights.append(sight)
+
+    # Second row of sightseeing options
+    cols = st.columns(5)
+    for col, (sight, (lat, lon, img)) in zip(cols, second_row):
+        with col:
+            st.image(img, width=200)
+            if st.checkbox(sight, key=sight):
+                selected_sights.append(sight)
+
     if st.button("Confirm Sightseeing"):
         st.session_state.selected_sights = selected_sights
         st.session_state.step = "ask_budget"
         st.rerun()
 
-# Step 4: Ask for budget
+# Step 4+: Continue with budget, property, reviews, and map (same as before)
 elif st.session_state.step == "ask_budget":
     st.write(f"Great choices, {st.session_state.name}! 💰 Now, what's your budget per night?")
     budget = st.slider("Select your budget (€)", 50, 500, 150)
@@ -136,6 +159,7 @@ elif st.session_state.step == "ask_review_score":
 elif st.session_state.step == "show_results":
     st.write(f"Here are your best options in {st.session_state.city}, {st.session_state.name}! 🎉")
 
+    # Filter the data
     filtered_gdf = st.session_state.gdf[
         (st.session_state.gdf['price'] <= st.session_state.budget) & 
         (st.session_state.gdf['review_scores_rating'] >= st.session_state.review_score)
@@ -144,17 +168,21 @@ elif st.session_state.step == "show_results":
     if st.session_state.property_type:
         filtered_gdf = filtered_gdf[filtered_gdf['property_type'].isin(st.session_state.property_type)]
 
-    map_city = folium.Map(location=[filtered_gdf.latitude.mean(), filtered_gdf.longitude.mean()], zoom_start=13)
-    marker_cluster = MarkerCluster().add_to(map_city)
+    # Avoid NaN lat/lon issues
+    if not filtered_gdf.empty:
+        map_city = folium.Map(location=[filtered_gdf.latitude.mean(), filtered_gdf.longitude.mean()], zoom_start=13)
+        marker_cluster = MarkerCluster().add_to(map_city)
 
-    for _, row in filtered_gdf.iterrows():
-        folium.Marker(
-            location=[row.latitude, row.longitude],
-            popup=f"{row['name']}, €{row['price']} per night",
-            icon=folium.Icon(color="orange", icon="home", prefix="fa")
-        ).add_to(marker_cluster)
+        for _, row in filtered_gdf.iterrows():
+            folium.Marker(
+                location=[row.latitude, row.longitude],
+                popup=f"{row['name']}, €{row['price']} per night",
+                icon=folium.Icon(color="orange", icon="home", prefix="fa")
+            ).add_to(marker_cluster)
 
-    folium_static(map_city)
+        folium_static(map_city)
+    else:
+        st.write("❌ No available Airbnbs match your filters. Try adjusting your budget or property type.")
 
 
 
