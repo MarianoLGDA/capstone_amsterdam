@@ -135,6 +135,27 @@ elif st.session_state.step == "ask_sightseeing":
         st.session_state.step = "ask_budget"
         st.rerun()
 
+# Step 4: Ask for budget
+elif st.session_state.step == "ask_budget":
+    st.write(f"Great choices, {st.session_state.name}! 💰 Now, what's your budget per night?")
+    budget = st.slider("Select your budget (€)", 50, 500, 150)
+
+    if st.button("Confirm Budget"):
+        st.session_state.budget = budget
+        st.session_state.step = "ask_room_type"
+        st.rerun()
+
+# Step 5: Ask for room type
+elif st.session_state.step == "ask_room_type":
+    st.write(f"Almost there, {st.session_state.name}! 🏡 What type of room do you prefer?")
+    room_types = st.session_state.gdf['room_type'].unique().tolist()
+    selected_room_type = st.multiselect("Select room type(s):", room_types)
+
+    if st.button("Find Best Stays"):
+        st.session_state.room_type = selected_room_type
+        st.session_state.step = "show_results"
+        st.rerun()
+
 # Step 6: Show map with filtered Airbnbs and sightseeing spots
 elif st.session_state.step == "show_results":
     st.write(f"Here are your best options in {st.session_state.city}, {st.session_state.name}! 🎉")
