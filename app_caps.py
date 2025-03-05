@@ -2,13 +2,58 @@ import os
 import openai
 import time
 import random
+import streamlit as st
+import folium
+import pandas as pd
+import geopandas as gpd
+from shapely.geometry import Point, Polygon
+from folium.plugins import MarkerCluster
+from streamlit_folium import folium_static
 
-# Load OpenAI API key securely
-openai.api_key = os.getenv("OPENAI_API_KEY")  # Make sure to set this up securely!
+# Set OpenAI API Key securely
+openai.api_key = os.getenv("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")
+
+# Sightseeing locations for each city
+sightseeing_spots = {
+    "Amsterdam": {
+        "Rijksmuseum": (52.360001, 4.885278, "rijksmuseum.jpg"),
+        "Anne Frank House": (52.375218, 4.883977, "anne_frank_house.jpg"),
+        "Van Gogh Museum": (52.358416, 4.881077, "van_gogh_museum.jpg"),
+        "Dam Square": (52.373058, 4.892557, "dam_square.jpg"),
+        "Jordaan District": (52.379189, 4.880556, "jordaan.jpg"),
+        "Vondelpark": (52.358333, 4.868611, "vondelpark.jpg"),
+        "Ajax Stadium": (52.314167, 4.941389, "ajax_stadium.jpg"),
+        "A'DAM Lookout": (52.384409, 4.902568, "adam_lookout.jpg"),
+        "NEMO Science Museum": (52.374639, 4.912261, "nemo_museum.jpg"),
+        "The Heineken Experience": (52.357869, 4.891700, "heineken_experience.jpg"),
+    },
+    "Barcelona": {
+        "Sagrada Familia": (41.403629, 2.174356, "sagrada_familia.jpg"),
+        "Park Güell": (41.414495, 2.152695, "park_guell.jpg"),
+        "Casa Batlló": (41.391640, 2.164894, "casa_batllo.jpg"),
+        "La Rambla": (41.376430, 2.175610, "la_rambla.jpg"),
+        "Gothic Quarter": (41.380897, 2.176847, "gothic_quarter.jpg"),
+        "Camp Nou": (41.380896, 2.122820, "camp_nou.jpg"),
+        "Montjuïc": (41.363531, 2.158798, "montjuic.jpg"),
+        "Tibidabo": (41.418064, 2.118847, "tibidabo.jpg"),
+        "Magic Fountain": (41.371454, 2.151699, "magic_fountain.jpg"),
+        "Arc de Triomf": (41.391926, 2.180305, "arc_de_triomf.jpg"),
+    }
+}
+
+# Load Airbnb data based on city selection
+@st.cache_data
+def load_data(city):
+    file_path = f"df_{city.lower()}.csv"
+    df = pd.read_csv(file_path)
+    gdf = gpd.GeoDataFrame(
+        df, geometry=gpd.points_from_xy(df.longitude, df.latitude), crs="EPSG:4326"
+    )
+    return gdf
 
 st.subheader("💬 SmartStay AI Chatbot: Plan Your Trip!")
 
-# List of random salutations for each interaction
+# Random greetings for different interactions
 greetings = [
     "Hi, Interrail traveler! 🌍 Where are you headed?",
     "Welcome, globetrotter! ✈️ Which city will you explore?",
@@ -33,20 +78,23 @@ if user_input:
     # Add user message to history
     st.session_state.messages.append({"role": "user", "content": user_input})
 
-    # Check if the user has selected a valid city
+    # Process user response
     city = user_input.strip().title()
     if city not in ["Amsterdam", "Barcelona"]:
         bot_reply = "Sorry, we currently support only Amsterdam and Barcelona. Please choose one of these cities. 😊"
     else:
         bot_reply = f"Great! You're visiting **{city}**. Now, select the sightseeing places you want to visit!"
 
-        # Display sightseeing options dynamically in two rows
+        # Load city-specific data
+        gdf = load_data(city)
+
+        # Display sightseeing choices
         selected_sights = []
         sightseeing_list = list(sightseeing_spots[city].items())
         first_row = sightseeing_list[:5]
         second_row = sightseeing_list[5:]
 
-        # First row (5 images)
+        # Sightseeing images in two rows
         cols = st.columns(5)
         for col, (sight, (lat, lon, img)) in zip(cols, first_row):
             with col:
@@ -54,7 +102,6 @@ if user_input:
                 if st.checkbox(sight, key=sight):
                     selected_sights.append((sight, lat, lon, img))
 
-        # Second row (5 images)
         cols = st.columns(5)
         for col, (sight, (lat, lon, img)) in zip(cols, second_row):
             with col:
@@ -62,76 +109,40 @@ if user_input:
                 if st.checkbox(sight, key=sight):
                     selected_sights.append((sight, lat, lon, img))
 
-        # Ask budget
-        bot_reply += "\n\n💰 **What is your budget per night (in €)?**"
-        budget = st.number_input("Enter your budget (€):", min_value=50, max_value=500, step=10)
+        # Ask for travel preferences
+        bot_reply += "\n\n💰 **What is your budget per night (€)?**"
+        budget = st.number_input("Enter your budget:", min_value=50, max_value=500, step=10)
 
-        # Ask property type
-        bot_reply += "\n\n🏡 **What type of property are you looking for?**"
+        bot_reply += "\n\n🏡 **What type of property do you want?**"
         property_types = gdf['property_type'].unique().tolist()
         selected_property_type = st.multiselect("Select property type(s):", property_types)
 
-        # Ask for minimum review score
         bot_reply += "\n\n⭐ **Minimum review score?**"
-        review_score = st.slider("Select a minimum review score (1-100):", 50, 100, 80)
+        review_score = st.slider("Select a minimum review score:", 50, 100, 80)
 
-        # Filter Airbnbs based on user selections
+        # Filter Airbnbs
         filtered_gdf = gdf[gdf['price'] <= budget]
         if selected_property_type:
-            filtered_gdf = filtered_gdf[filtered_gdf['property_type'].isin(selected_property_type)]
-        filtered_gdf = filtered_gdf[filtered_gdf['review_scores_rating'] >= review_score]
+            filtered_gdf = filtered_gdf[gdf['property_type'].isin(selected_property_type)]
+        filtered_gdf = filtered_gdf[gdf['review_scores_rating'] >= review_score]
 
-        # If at least 3 sightseeing places are selected, filter within the area
+        # Display the map with Airbnb recommendations
         if len(selected_sights) >= 3:
             polygon = Polygon([(lon, lat) for _, lat, lon, _ in selected_sights])
             filtered_gdf = filtered_gdf[filtered_gdf.geometry.within(polygon)]
-            bot_reply += "\n\n📍 **Here are the best accommodations within your selected zone:**"
-        else:
-            bot_reply += "\n\n⚠️ Please select at least 3 sightseeing locations to filter Airbnbs by area."
 
-        # Display the map with filtered Airbnbs
-        if not filtered_gdf.empty:
+            bot_reply += "\n\n📍 **Here are the best accommodations within your selected zone:**"
             map_city = folium.Map(location=[gdf.latitude.mean(), gdf.longitude.mean()], zoom_start=13)
             marker_cluster = MarkerCluster().add_to(map_city)
 
-            # Add sightseeing locations to the map
-            for sight, lat, lon, img in selected_sights:
-                popup_html = f"""
-                <strong>{sight}</strong><br>
-                <img src='{img}' width='250'>
-                """
-                folium.Marker(
-                    location=[lat, lon],
-                    popup=folium.Popup(popup_html, max_width=300),
-                    icon=folium.Icon(color="red", icon="info-sign")
-                ).add_to(map_city)
-
-            # Add Airbnb markers
             for _, row in filtered_gdf.iterrows():
-                popup_html = f"""
-                <strong>{row['name']}</strong><br>
-                <img src='{row['picture_url']}' width='250'><br>
-                <b>Price:</b> €{row['price']} per night<br>
-                <b>Type:</b> {row['property_type']} - {row['room_type']}<br>
-                <b>Bedrooms:</b> {row['bedrooms']} | <b>Bathrooms:</b> {row['bathrooms']} | <b>Beds:</b> {row['beds']}<br>
-                <b>Rating:</b> {row['review_scores_rating']} ⭐<br>
-                """
                 folium.Marker(
                     location=[row.latitude, row.longitude],
-                    popup=folium.Popup(popup_html, max_width=300),
+                    popup=f"{row['name']}, €{row['price']} per night",
                     icon=folium.Icon(color="orange", icon="home", prefix="fa")
                 ).add_to(marker_cluster)
 
             folium_static(map_city)
-
-            # Generate zone-based recommendations
-            bot_reply += "\n\n🛎️ **Here are some recommendations for the area you've chosen:**"
-            if city == "Amsterdam":
-                bot_reply += "\n- **Jordaan District**: A vibrant area full of local cafes and markets. *Pros: Artistic vibe, close to main attractions. Cons: Can be pricey.*"
-                bot_reply += "\n- **De Pijp**: A lively neighborhood with great nightlife and food. *Pros: Cheaper than city center, lots of entertainment. Cons: Noisy at night.*"
-            elif city == "Barcelona":
-                bot_reply += "\n- **Gothic Quarter**: A historic neighborhood filled with culture. *Pros: Walkable, rich history. Cons: Can be crowded.*"
-                bot_reply += "\n- **El Born**: A trendy district perfect for food lovers. *Pros: Stylish, good bars. Cons: Accommodations can be expensive.*"
 
     # Append bot response to chat history
     st.session_state.messages.append({"role": "assistant", "content": bot_reply})
@@ -140,8 +151,8 @@ if user_input:
     with st.chat_message("assistant"):
         st.write(bot_reply)
 
-    # Simulate typing effect
     time.sleep(1)
+
 
 
 
