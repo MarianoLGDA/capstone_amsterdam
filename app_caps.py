@@ -44,7 +44,12 @@ sightseeing_spots = {
 @st.cache_data
 def load_data(city):
     file_path = f"df_{city.lower()}.csv"
-    df = pd.read_csv(file_path)
+    
+    # Try reading with UTF-8, fallback to ISO-8859-1
+    try:
+        df = pd.read_csv(file_path, encoding="utf-8")
+    except UnicodeDecodeError:
+        df = pd.read_csv(file_path, encoding="ISO-8859-1")  # Try Latin-1 if UTF-8 fails
 
     # Ensure lat/lon are valid
     df = df.dropna(subset=["latitude", "longitude"])
@@ -53,6 +58,7 @@ def load_data(city):
         df, geometry=gpd.points_from_xy(df.longitude, df.latitude), crs="EPSG:4326"
     )
     return gdf
+
 
 st.subheader("💬 SmartStay AI Chatbot: Plan Your Trip!")
 
