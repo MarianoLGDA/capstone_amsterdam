@@ -131,12 +131,12 @@ if selected_sights:
     room_types = gdf['room_type'].unique().tolist()
 
     selected_property_type = st.selectbox("Select property type", ["Any"] + property_types)
-selected_room_type = st.selectbox("Select room type", ["Any"] + room_types)
-selected_amenities = st.multiselect("Select desired amenities", amenities_list)
-min_reviews = st.slider("Minimum number of reviews", 0, int(gdf['number_of_reviews'].max()), 10)
-min_rating = st.slider("Minimum rating score", 0, 5, 3)
-min_beds = st.slider("Minimum number of beds", 1, int(gdf['beds'].max()), 1)
-budget = st.slider("What is your budget per night (in €)?", 50, 500, 150)
+    selected_room_type = st.selectbox("Select room type", ["Any"] + room_types)
+    selected_amenities = st.multiselect("Select desired amenities", amenities_list)
+    min_reviews = st.slider("Minimum number of reviews", 0, int(gdf['number_of_reviews'].max()), 10)
+    min_rating = st.slider("Minimum rating score", 0, 5, 3)
+    min_beds = st.slider("Minimum number of beds", 1, int(gdf['beds'].max()), 1)
+    budget = st.slider("What is your budget per night (in €)?", 50, 500, 150)
 
 # Apply filtering
 filtered_gdf = gdf[(gdf['price'] <= budget) &
