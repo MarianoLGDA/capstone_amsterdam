@@ -156,25 +156,58 @@ elif st.session_state.step == "ask_room_type":
         st.session_state.step = "show_results"
         st.rerun()
 
-# Step 6: Show map with filtered Airbnbs and sightseeing spots
-elif st.session_state.step == "show_results":
+# Step 6: Show map with filtered Airbnbs inside polygon and sightseeing spots
+if st.session_state.step == "show_results":
     st.write(f"Here are your best options in {st.session_state.city}, {st.session_state.name}! 🎉")
 
     map_city = folium.Map(location=[st.session_state.gdf.latitude.mean(), st.session_state.gdf.longitude.mean()], zoom_start=13)
     marker_cluster = MarkerCluster().add_to(map_city)
 
     # Add sightseeing locations
+    sightseeing_coords = []
     for sight, lat, lon, img in st.session_state.selected_sights:
-        folium.Marker(location=[lat, lon], icon=folium.Icon(color="red", icon="info-sign")).add_to(map_city)
+        sightseeing_coords.append((lon, lat))  # Append in (longitude, latitude) format for Polygon
+        folium.Marker(
+            location=[lat, lon], 
+            popup=f"<strong>{sight}</strong><br><img src='{img}' width='250'>", 
+            icon=folium.Icon(color="red", icon="info-sign")
+        ).add_to(map_city)
 
-    # Filter and add Airbnb markers
-    filtered_gdf = st.session_state.gdf[
-        (st.session_state.gdf['price'] <= st.session_state.budget)
-    ]
+    # Create Polygon around selected sightseeing spots
+    if len(sightseeing_coords) >= 3:
+        sightseeing_polygon = Polygon(sightseeing_coords)
+        folium.PolyLine(sightseeing_coords + [sightseeing_coords[0]], color="blue", weight=2.5, opacity=1).add_to(map_city)
+        
+        # Convert Polygon to GeoSeries for filtering
+        polygon_gdf = gpd.GeoSeries([sightseeing_polygon], crs="EPSG:4326")
+
+        # Filter Airbnbs inside the polygon
+        filtered_gdf = st.session_state.gdf[
+            (st.session_state.gdf['price'] <= st.session_state.budget) & 
+            (st.session_state.gdf.geometry.within(sightseeing_polygon))
+        ]
+
+        # Add Airbnb markers
+        for _, row in filtered_gdf.iterrows():
+            popup_html = f"""
+            <strong>{row['name']}</strong><br>
+            <img src='{row['picture_url']}' width='250'><br>
+            <b>Price:</b> €{row['price']} per night<br>
+            <b>Type:</b> {row['property_type']} - {row['room_type']}<br>
+            <b>Bedrooms:</b> {row['bedrooms']} | <b>Bathrooms:</b> {row['bathrooms']} | <b>Beds:</b> {row['beds']}<br>
+            <b>Rating:</b> {row['review_scores_rating']} ⭐<br>
+            """
+            folium.Marker(
+                location=[row.latitude, row.longitude],
+                popup=folium.Popup(popup_html, max_width=300),
+                icon=folium.Icon(color="orange", icon="home", prefix="fa")
+            ).add_to(marker_cluster)
     
-    for _, row in filtered_gdf.iterrows():
-        popup_html = f"<strong>{row['name']}</strong><br><img src='{row['picture_url']}' width='250'><br>€{row['price']} per night"
-        folium.Marker(location=[row.latitude, row.longitude], popup=popup_html, icon=folium.Icon(color="orange", icon="home")).add_to(marker_cluster)
+        if filtered_gdf.empty:
+            st.warning("⚠️ No Airbnb listings found within the selected area. Try adjusting your budget or choosing different sightseeing spots.")
+
+    else:
+        st.warning("⚠️ Select at least 3 sightseeing locations to filter Airbnbs by area.")
 
     folium_static(map_city)
 
