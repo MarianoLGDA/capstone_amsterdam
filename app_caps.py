@@ -10,7 +10,7 @@ from folium.plugins import MarkerCluster
 from streamlit_folium import folium_static
 
 # Set OpenAI API Key securely
-openai.api_key = os.getenv("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")
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # Sightseeing locations for each city
 sightseeing_spots = {
@@ -67,8 +67,8 @@ if "selected_sights" not in st.session_state:
     st.session_state.selected_sights = []
 if "budget" not in st.session_state:
     st.session_state.budget = None
-if "property_type" not in st.session_state:
-    st.session_state.property_type = []
+if "room_type" not in st.session_state:
+    st.session_state.room_type = []
 if "gdf" not in st.session_state:
     st.session_state.gdf = None
 
@@ -80,10 +80,10 @@ if st.session_state.step != "ask_name" and st.button("⬅️ Back"):
         st.session_state.step = "ask_city"
     elif st.session_state.step == "ask_budget":
         st.session_state.step = "ask_sightseeing"
-    elif st.session_state.step == "ask_property_type":
+    elif st.session_state.step == "ask_room_type":
         st.session_state.step = "ask_budget"
     elif st.session_state.step == "show_results":
-        st.session_state.step = "ask_property_type"
+        st.session_state.step = "ask_room_type"
     st.rerun()
 
 # Step 1: Ask for the user's name
@@ -120,7 +120,7 @@ elif st.session_state.step == "ask_sightseeing":
         with col:
             st.image(img, width=200)
             if st.checkbox(sight, key=sight):
-                selected_sights.append(sight)
+                selected_sights.append((sight, lat, lon, img))
 
     # Second row of sightseeing options
     cols = st.columns(5)
@@ -128,7 +128,7 @@ elif st.session_state.step == "ask_sightseeing":
         with col:
             st.image(img, width=200)
             if st.checkbox(sight, key=sight):
-                selected_sights.append(sight)
+                selected_sights.append((sight, lat, lon, img))
 
     if st.button("Confirm Sightseeing"):
         st.session_state.selected_sights = selected_sights
@@ -142,35 +142,32 @@ elif st.session_state.step == "ask_budget":
 
     if st.button("Confirm Budget"):
         st.session_state.budget = budget
-        st.session_state.step = "ask_property_type"
+        st.session_state.step = "ask_room_type"
         st.rerun()
 
-# Step 5: Ask for property type
-elif st.session_state.step == "ask_property_type":
-    st.write(f"Almost there, {st.session_state.name}! 🏡 What type of property do you prefer?")
-    property_types = st.session_state.gdf['property_type'].unique().tolist()
-    selected_property_type = st.multiselect("Select property type(s):", property_types)
+# Step 5: Ask for room type
+elif st.session_state.step == "ask_room_type":
+    st.write(f"Almost there, {st.session_state.name}! 🏡 What type of room do you prefer?")
+    room_types = st.session_state.gdf['room_type'].unique().tolist()
+    selected_room_type = st.multiselect("Select room type(s):", room_types)
 
     if st.button("Find Best Stays"):
-        st.session_state.property_type = selected_property_type
+        st.session_state.room_type = selected_room_type
         st.session_state.step = "show_results"
         st.rerun()
 
-# Step 6: Show map with filtered Airbnbs
+# Step 6: Show map with filtered Airbnbs and sightseeing spots
 elif st.session_state.step == "show_results":
     st.write(f"Here are your best options in {st.session_state.city}, {st.session_state.name}! 🎉")
-    filtered_gdf = st.session_state.gdf[
-        (st.session_state.gdf['price'] <= st.session_state.budget)
-    ]
-    
-    if st.session_state.property_type:
-        filtered_gdf = filtered_gdf[filtered_gdf['property_type'].isin(st.session_state.property_type)]
 
-    if not filtered_gdf.empty:
-        map_city = folium.Map(location=[filtered_gdf.latitude.mean(), filtered_gdf.longitude.mean()], zoom_start=13)
-        folium_static(map_city)
+    # Add sightseeing locations
+    map_city = folium.Map(location=[st.session_state.gdf.latitude.mean(), st.session_state.gdf.longitude.mean()], zoom_start=13)
+    marker_cluster = MarkerCluster().add_to(map_city)
 
+    for sight, lat, lon, img in st.session_state.selected_sights:
+        folium.Marker(location=[lat, lon], icon=folium.Icon(color="red")).add_to(map_city)
 
+    folium_static(map_city)
 
 
 
