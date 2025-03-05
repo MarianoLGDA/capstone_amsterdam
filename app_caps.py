@@ -40,6 +40,75 @@ sightseeing_spots = {
     }
 }
 
+# Custom CSS for background, button colors, and fonts
+st.markdown(
+    """
+    <style>
+    /* Background color - remains white */
+    .stApp {
+        background-color: #FFFFFF;
+    }
+    
+    /* Title text color - changed to #e8253f */
+    h1, h2 {
+        color: #e8253f !important;
+    }
+    
+    /* Other text color - remains dark grey */
+    h3, h4, h5, h6, p, label {
+        color: #333333;
+    }
+
+    /* Change font size and color of selectbox label */
+    div[data-testid="stSelectbox"] label {
+        font-size: 20px !important; /* Adjust size as needed */
+        color: #e8253f !important; /* Change color to red */
+        font-weight: bold; /* Optional: Make text bold */
+    
+    </style>
+
+    }
+    
+    /* Buttons - changed to #e8253f */
+    .stButton>button {
+        background-color: #e8253f !important;
+        color: white !important;
+        border-radius: 10px;
+        font-size: 16px;
+        font-weight: bold;
+    }
+    
+    /* Sidebar background - changed to #e8253f */
+    [data-testid="stSidebar"] {
+        background-color: #e8253f !important;
+    }
+
+    /* Dropdowns and select boxes */
+    [data-baseweb="select"] {
+        background-color: white !important;
+        border-radius: 5px !important;
+    }
+
+    /* Dropdown container (dark section) changed to #e8253f */
+    .stSelectbox {
+        background-color: #e8253f !important;
+        color: white !important;
+    }
+
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+
+# Load logos
+col1, col2, col3 = st.columns([1, 3, 1])
+with col1:
+    st.image("kpmg_logo.jpg", width=200)
+with col3:
+    st.image("airbnb_logo.jpg", width=200)
+
+st.title("SmartStay: AI-Powered Interrail Accommodation")
 # Load Airbnb data based on city selection
 @st.cache_data
 def load_data(city):
