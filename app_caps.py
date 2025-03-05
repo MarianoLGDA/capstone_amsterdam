@@ -10,7 +10,7 @@ from folium.plugins import MarkerCluster
 from streamlit_folium import folium_static
 
 # Set OpenAI API Key securely
-openai.api_key = os.getenv("OPENAI_API_KEY")
+openai.api_key = os.getenv("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")
 
 # Sightseeing locations for each city
 sightseeing_spots = {
