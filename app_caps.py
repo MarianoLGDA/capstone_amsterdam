@@ -10,7 +10,7 @@ from folium.plugins import MarkerCluster
 from streamlit_folium import folium_static
 
 # Set OpenAI API Key securely
-openai.api_key = os.getenv("OPENAI_API_KEY")
+openai.api_key = os.getenv("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")
 
 # Sightseeing locations for each city
 sightseeing_spots = {
@@ -135,37 +135,25 @@ elif st.session_state.step == "ask_sightseeing":
         st.session_state.step = "ask_budget"
         st.rerun()
 
-# Step 4: Ask for budget
-elif st.session_state.step == "ask_budget":
-    st.write(f"Great choices, {st.session_state.name}! 💰 Now, what's your budget per night?")
-    budget = st.slider("Select your budget (€)", 50, 500, 150)
-
-    if st.button("Confirm Budget"):
-        st.session_state.budget = budget
-        st.session_state.step = "ask_room_type"
-        st.rerun()
-
-# Step 5: Ask for room type
-elif st.session_state.step == "ask_room_type":
-    st.write(f"Almost there, {st.session_state.name}! 🏡 What type of room do you prefer?")
-    room_types = st.session_state.gdf['room_type'].unique().tolist()
-    selected_room_type = st.multiselect("Select room type(s):", room_types)
-
-    if st.button("Find Best Stays"):
-        st.session_state.room_type = selected_room_type
-        st.session_state.step = "show_results"
-        st.rerun()
-
 # Step 6: Show map with filtered Airbnbs and sightseeing spots
 elif st.session_state.step == "show_results":
     st.write(f"Here are your best options in {st.session_state.city}, {st.session_state.name}! 🎉")
 
-    # Add sightseeing locations
     map_city = folium.Map(location=[st.session_state.gdf.latitude.mean(), st.session_state.gdf.longitude.mean()], zoom_start=13)
     marker_cluster = MarkerCluster().add_to(map_city)
 
+    # Add sightseeing locations
     for sight, lat, lon, img in st.session_state.selected_sights:
-        folium.Marker(location=[lat, lon], icon=folium.Icon(color="red")).add_to(map_city)
+        folium.Marker(location=[lat, lon], icon=folium.Icon(color="red", icon="info-sign")).add_to(map_city)
+
+    # Filter and add Airbnb markers
+    filtered_gdf = st.session_state.gdf[
+        (st.session_state.gdf['price'] <= st.session_state.budget)
+    ]
+    
+    for _, row in filtered_gdf.iterrows():
+        popup_html = f"<strong>{row['name']}</strong><br><img src='{row['picture_url']}' width='250'><br>€{row['price']} per night"
+        folium.Marker(location=[row.latitude, row.longitude], popup=popup_html, icon=folium.Icon(color="orange", icon="home")).add_to(marker_cluster)
 
     folium_static(map_city)
 
