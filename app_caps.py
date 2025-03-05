@@ -129,62 +129,61 @@ if selected_sights:
     st.subheader("🏡 Filter Your Airbnb Preferences")
     property_types = gdf['property_type'].unique().tolist()
     room_types = gdf['room_type'].unique().tolist()
-    
+
     selected_property_type = st.selectbox("Select property type", ["Any"] + property_types)
-    selected_room_type = st.selectbox("Select room type", ["Any"] + room_types)
-    budget = st.slider("What is your budget per night (in €)?", 50, 500, 150)
+selected_room_type = st.selectbox("Select room type", ["Any"] + room_types)
+selected_amenities = st.multiselect("Select desired amenities", amenities_list)
+min_reviews = st.slider("Minimum number of reviews", 0, int(gdf['number_of_reviews'].max()), 10)
+min_rating = st.slider("Minimum rating score", 0, 5, 3)
+min_beds = st.slider("Minimum number of beds", 1, int(gdf['beds'].max()), 1)
+budget = st.slider("What is your budget per night (in €)?", 50, 500, 150)
+
+# Apply filtering
+filtered_gdf = gdf[(gdf['price'] <= budget) &
+                    (gdf['number_of_reviews'] >= min_reviews) &
+                    (gdf['review_scores_rating'] >= min_rating) &
+                    (gdf['beds'] >= min_beds)]
+if selected_property_type != "Any":
+    filtered_gdf = filtered_gdf[filtered_gdf['property_type'] == selected_property_type]
+if selected_room_type != "Any":
+    filtered_gdf = filtered_gdf[filtered_gdf['room_type'] == selected_room_type]
+if selected_amenities:
+    filtered_gdf = filtered_gdf[filtered_gdf['amenities'].apply(lambda x: all(a in x for a in selected_amenities))]
+
+# Display map
+map_city = folium.Map(location=[gdf.latitude.mean(), gdf.longitude.mean()], zoom_start=13)
+marker_cluster = MarkerCluster().add_to(map_city)
+
+# Add sightseeing locations
+for sight, lat, lon, img in selected_sights:
+    popup_html = f"""
+    <strong>{sight}</strong><br>
+    <img src='{img}' width='250'>
+    """
+    folium.Marker(
+        location=[lat, lon],
+        popup=folium.Popup(popup_html, max_width=300),
+        icon=folium.Icon(color="red", icon="info-sign")
+    ).add_to(map_city)
+
+# Add Airbnb markers
+for _, row in filtered_gdf.iterrows():
+    popup_html = f"""
+    <strong>{row['name']}</strong><br>
+    <img src='{row['picture_url']}' width='250'><br>
+    <b>Price:</b> €{row['price']} per night<br>
+    <b>Type:</b> {row['property_type']} - {row['room_type']}<br>
+    <b>Bedrooms:</b> {row['bedrooms']} | <b>Bathrooms:</b> {row['bathrooms']} | <b>Beds:</b> {row['beds']}<br>
+    <b>Rating:</b> {row['review_scores_rating']} ⭐<br>
+    <b>Reviews:</b> {row['number_of_reviews']}<br>
+    <b>Amenities:</b> {', '.join(row['amenities'])}
+    """
+    folium.Marker(
+        location=[row.latitude, row.longitude],
+        popup=folium.Popup(popup_html, max_width=300),
+        icon=folium.Icon(color="orange", icon="home", prefix="fa")
+    ).add_to(marker_cluster)
+
+folium_static(map_city)
     
-    # Apply filtering
-    filtered_gdf = gdf[gdf['price'] <= budget]
-    if selected_property_type != "Any":
-        filtered_gdf = filtered_gdf[filtered_gdf['property_type'] == selected_property_type]
-    if selected_room_type != "Any":
-        filtered_gdf = filtered_gdf[filtered_gdf['room_type'] == selected_room_type]
     
-    # Filter Airbnbs within the sightseeing area
-    if len(selected_sights) >= 3:
-        polygon = Polygon([(lon, lat) for _, lat, lon, _ in selected_sights])
-        filtered_gdf = filtered_gdf[filtered_gdf.geometry.within(polygon)]
-    else:
-        st.warning("⚠️ Select at least 3 sightseeing locations to filter Airbnbs by area.")
-
-    # Display map
-    map_city = folium.Map(location=[gdf.latitude.mean(), gdf.longitude.mean()], zoom_start=13)
-    marker_cluster = MarkerCluster().add_to(map_city)
-    
-    # Add sightseeing locations
-    for sight, lat, lon, img in selected_sights:
-        popup_html = f"""
-        <strong>{sight}</strong><br>
-        <img src='{img}' width='250'>
-        """
-        folium.Marker(
-            location=[lat, lon],
-            popup=folium.Popup(popup_html, max_width=300),
-            icon=folium.Icon(color="red", icon="info-sign")
-        ).add_to(map_city)
-    
-    # Add Airbnb markers
-    for _, row in filtered_gdf.iterrows():
-        popup_html = f"""
-        <strong>{row['name']}</strong><br>
-        <img src='{row['picture_url']}' width='250'><br>
-        <b>Price:</b> €{row['price']} per night<br>
-        <b>Type:</b> {row['property_type']} - {row['room_type']}<br>
-        <b>Bedrooms:</b> {row['bedrooms']} | <b>Bathrooms:</b> {row['bathrooms']} | <b>Beds:</b> {row['beds']}<br>
-        <b>Rating:</b> {row['review_scores_rating']} ⭐<br>
-        """
-        folium.Marker(
-            location=[row.latitude, row.longitude],
-            popup=folium.Popup(popup_html, max_width=300),
-            icon=folium.Icon(color="orange", icon="home", prefix="fa")
-        ).add_to(marker_cluster)
-    
-    folium_static(map_city)
-
-
-
-
-
-
-
