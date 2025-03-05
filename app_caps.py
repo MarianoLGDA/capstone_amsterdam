@@ -1,12 +1,11 @@
 import os
 import openai
 import time
-import random
 import streamlit as st
 import folium
 import pandas as pd
 import geopandas as gpd
-from shapely.geometry import Point, Polygon
+from shapely.geometry import Polygon
 from folium.plugins import MarkerCluster
 from streamlit_folium import folium_static
 
@@ -46,10 +45,10 @@ sightseeing_spots = {
 def load_data(city):
     file_path = f"df_{city.lower()}.csv"
     df = pd.read_csv(file_path)
-    
+
     # Ensure lat/lon are valid
     df = df.dropna(subset=["latitude", "longitude"])
-    
+
     gdf = gpd.GeoDataFrame(
         df, geometry=gpd.points_from_xy(df.longitude, df.latitude), crs="EPSG:4326"
     )
@@ -70,10 +69,22 @@ if "budget" not in st.session_state:
     st.session_state.budget = None
 if "property_type" not in st.session_state:
     st.session_state.property_type = []
-if "review_score" not in st.session_state:
-    st.session_state.review_score = 80
 if "gdf" not in st.session_state:
     st.session_state.gdf = None
+
+# Back button logic
+if st.session_state.step != "ask_name" and st.button("⬅️ Back"):
+    if st.session_state.step == "ask_city":
+        st.session_state.step = "ask_name"
+    elif st.session_state.step == "ask_sightseeing":
+        st.session_state.step = "ask_city"
+    elif st.session_state.step == "ask_budget":
+        st.session_state.step = "ask_sightseeing"
+    elif st.session_state.step == "ask_property_type":
+        st.session_state.step = "ask_budget"
+    elif st.session_state.step == "show_results":
+        st.session_state.step = "ask_property_type"
+    st.rerun()
 
 # Step 1: Ask for the user's name
 if st.session_state.step == "ask_name":
@@ -102,7 +113,7 @@ elif st.session_state.step == "ask_sightseeing":
     second_row = sightseeing_list[5:]
 
     selected_sights = []
-    
+
     # First row of sightseeing options
     cols = st.columns(5)
     for col, (sight, (lat, lon, img)) in zip(cols, first_row):
@@ -124,7 +135,7 @@ elif st.session_state.step == "ask_sightseeing":
         st.session_state.step = "ask_budget"
         st.rerun()
 
-# Step 4+: Continue with budget, property, reviews, and map (same as before)
+# Step 4: Ask for budget
 elif st.session_state.step == "ask_budget":
     st.write(f"Great choices, {st.session_state.name}! 💰 Now, what's your budget per night?")
     budget = st.slider("Select your budget (€)", 50, 500, 150)
@@ -140,49 +151,24 @@ elif st.session_state.step == "ask_property_type":
     property_types = st.session_state.gdf['property_type'].unique().tolist()
     selected_property_type = st.multiselect("Select property type(s):", property_types)
 
-    if st.button("Confirm Property Type"):
-        st.session_state.property_type = selected_property_type
-        st.session_state.step = "ask_review_score"
-        st.rerun()
-
-# Step 6: Ask for review score
-elif st.session_state.step == "ask_review_score":
-    st.write(f"Finally, {st.session_state.name}, how important are reviews to you? ⭐")
-    review_score = st.slider("Minimum review score:", 50, 100, 80)
-
     if st.button("Find Best Stays"):
-        st.session_state.review_score = review_score
+        st.session_state.property_type = selected_property_type
         st.session_state.step = "show_results"
         st.rerun()
 
-# Step 7: Show map with filtered Airbnbs
+# Step 6: Show map with filtered Airbnbs
 elif st.session_state.step == "show_results":
     st.write(f"Here are your best options in {st.session_state.city}, {st.session_state.name}! 🎉")
-
-    # Filter the data
     filtered_gdf = st.session_state.gdf[
-        (st.session_state.gdf['price'] <= st.session_state.budget) & 
-        (st.session_state.gdf['review_scores_rating'] >= st.session_state.review_score)
+        (st.session_state.gdf['price'] <= st.session_state.budget)
     ]
     
     if st.session_state.property_type:
         filtered_gdf = filtered_gdf[filtered_gdf['property_type'].isin(st.session_state.property_type)]
 
-    # Avoid NaN lat/lon issues
     if not filtered_gdf.empty:
         map_city = folium.Map(location=[filtered_gdf.latitude.mean(), filtered_gdf.longitude.mean()], zoom_start=13)
-        marker_cluster = MarkerCluster().add_to(map_city)
-
-        for _, row in filtered_gdf.iterrows():
-            folium.Marker(
-                location=[row.latitude, row.longitude],
-                popup=f"{row['name']}, €{row['price']} per night",
-                icon=folium.Icon(color="orange", icon="home", prefix="fa")
-            ).add_to(marker_cluster)
-
         folium_static(map_city)
-    else:
-        st.write("❌ No available Airbnbs match your filters. Try adjusting your budget or property type.")
 
 
 
