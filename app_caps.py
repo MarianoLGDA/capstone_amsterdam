@@ -37,42 +37,84 @@ sightseeing_spots = {
     }
 }
 
-# Custom CSS Styling
 st.markdown(
     """
     <style>
-    .stApp { background-color: #FFFFFF; }
-    
-    /* Change title color */
-    h1, h2 { color: #e8253f !important; }
-    
-    /* Adjust other text */
-    h3, h4, h5, h6, p, label { color: #333333; }
-    
-    /* Customize buttons */
-    .stButton>button {
-        background-color: #e8253f !important;
-        color: white !important;
-        border-radius: 10px;
-        font-size: 16px;
-        font-weight: bold;
-    }
-    
-    /* Sidebar styling */
-    [data-testid="stSidebar"] {
-        background-color: #e8253f !important;
+    /* Dark blue background */
+    .stApp { background-color: #0B0F28 !important; color: #FFFFFF !important; }
+
+    /* Titles */
+    h1, h2 { 
+        color: #4DA8DA !important; /* Light blue accent */
+        font-weight: bold !important; 
+        text-align: center; 
     }
 
-    /* Dropdowns and select boxes */
+    /* Subtitles and paragraphs */
+    h3, h4, h5, h6, p, label { 
+        color: #E0E0E0 !important; /* Soft white for readability */
+    }
+
+    /* Buttons */
+    .stButton>button {
+        background: linear-gradient(135deg, #1A73E8, #4DA8DA) !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 12px !important;
+        font-size: 16px !important;
+        font-weight: bold !important;
+        padding: 10px 20px !important;
+        transition: all 0.3s ease-in-out !important;
+    }
+    
+    .stButton>button:hover {
+        background: linear-gradient(135deg, #4DA8DA, #1A73E8) !important;
+        transform: scale(1.05);
+    }
+
+    /* Sidebar */
+    [data-testid="stSidebar"] {
+        background-color: #162447 !important; /* Deep dark blue sidebar */
+        color: white !important;
+    }
+    
+    /* Sidebar headers */
+    [data-testid="stSidebar"] h1, 
+    [data-testid="stSidebar"] h2, 
+    [data-testid="stSidebar"] h3 {
+        color: #4DA8DA !important;
+    }
+
+    /* Dropdowns & Select Boxes */
     div[data-testid="stSelectbox"] label {
-        font-size: 20px !important;
-        color: #e8253f !important;
-        font-weight: bold;
+        font-size: 18px !important;
+        color: #4DA8DA !important;
+        font-weight: bold !important;
+    }
+    
+    /* Inputs */
+    input, textarea, select {
+        background-color: #1B1F3B !important;
+        color: white !important;
+        border: 1px solid #4DA8DA !important;
+        border-radius: 8px !important;
+        padding: 8px !important;
+    }
+
+    /* Customize Slider */
+    div[data-baseweb="slider"] > div {
+        background: #4DA8DA !important;
+    }
+
+    /* Improve contrast of text inside widgets */
+    .stTextInput, .stNumberInput, .stSelectbox, .stSlider {
+        color: white !important;
     }
     </style>
     """,
     unsafe_allow_html=True,
 )
+
 
 # Load logos
 col1, col2, col3 = st.columns([1, 3, 1])
