@@ -117,22 +117,23 @@ if "budget" not in st.session_state:
     st.session_state.budget = None
 if "room_type" not in st.session_state:
     st.session_state.room_type = []
+if "bedrooms" not in st.session_state:
+    st.session_state.bedrooms = 1
+if "review_score" not in st.session_state:
+    st.session_state.review_score = 3
+if "superhost" not in st.session_state:
+    st.session_state.superhost = "Any"
 if "gdf" not in st.session_state:
     st.session_state.gdf = None
 
 # Back button logic
 if st.session_state.step != "ask_name" and st.button("⬅️ Back"):
-    if st.session_state.step == "ask_city":
-        st.session_state.step = "ask_name"
-    elif st.session_state.step == "ask_sightseeing":
-        st.session_state.step = "ask_city"
-    elif st.session_state.step == "ask_budget":
-        st.session_state.step = "ask_sightseeing"
-    elif st.session_state.step == "ask_room_type":
-        st.session_state.step = "ask_budget"
-    elif st.session_state.step == "show_results":
-        st.session_state.step = "ask_room_type"
-    st.rerun()
+    steps = ["ask_name", "ask_city", "ask_sightseeing", "ask_budget", "ask_bedrooms", "ask_review_score", "ask_superhost", "ask_room_type", "show_results"]
+    current_index = steps.index(st.session_state.step)
+    if current_index > 0:
+        st.session_state.step = steps[current_index - 1]
+        st.rerun()
+
 
 # Step 1: Ask for the user's name
 if st.session_state.step == "ask_name":
@@ -202,6 +203,27 @@ elif st.session_state.step == "ask_room_type":
     if st.button("Find Best Stays"):
         st.session_state.room_type = selected_room_type
         st.session_state.step = "show_results"
+        st.rerun()
+
+elif st.session_state.step == "ask_bedrooms":
+    bedrooms = st.number_input("How many bedrooms do you need?", min_value=1, max_value=10, value=1)
+    if st.button("Confirm Bedrooms"):
+        st.session_state.bedrooms = bedrooms
+        st.session_state.step = "ask_review_score"
+        st.rerun()
+
+elif st.session_state.step == "ask_review_score":
+    review_score = st.slider("Minimum review score (1-5)", 1, 5, 3)
+    if st.button("Confirm Review Score"):
+        st.session_state.review_score = review_score
+        st.session_state.step = "ask_superhost"
+        st.rerun()
+
+elif st.session_state.step == "ask_superhost":
+    superhost = st.radio("Do you prefer a Superhost?", ["Any", "Yes", "No"])
+    if st.button("Confirm Superhost Preference"):
+        st.session_state.superhost = superhost
+        st.session_state.step = "ask_room_type"
         st.rerun()
 
 # Step 6: Show map with filtered Airbnbs inside polygon and sightseeing spots
