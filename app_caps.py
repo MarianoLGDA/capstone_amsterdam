@@ -185,7 +185,7 @@ elif st.session_state.step == "ask_sightseeing":
         st.rerun()
 
 # Step 4: Ask for budget
-elif st.session_state.step == "ask_budget":
+if st.session_state.step == "ask_budget":
     st.write(f"Great choices, {st.session_state.name}! 💰 Now, what's your budget per night?")
     budget = st.slider("Select your budget (€)", 50, 500, 150)
 
@@ -200,11 +200,12 @@ elif st.session_state.step == "ask_room_type":
     room_types = st.session_state.gdf['room_type'].unique().tolist()
     selected_room_type = st.multiselect("Select room type(s):", room_types)
 
-    if st.button("Find Best Stays"):
+    if st.button("Confirm Room Type"):
         st.session_state.room_type = selected_room_type
-        st.session_state.step = "show_results"
+        st.session_state.step = "ask_bedrooms"
         st.rerun()
 
+# Step 6: Ask for number of bedrooms
 elif st.session_state.step == "ask_bedrooms":
     bedrooms = st.number_input("How many bedrooms do you need?", min_value=1, max_value=10, value=1)
     if st.button("Confirm Bedrooms"):
@@ -212,6 +213,7 @@ elif st.session_state.step == "ask_bedrooms":
         st.session_state.step = "ask_review_score"
         st.rerun()
 
+# Step 7: Ask for minimum review score
 elif st.session_state.step == "ask_review_score":
     review_score = st.slider("Minimum review score (1-5)", 1, 5, 3)
     if st.button("Confirm Review Score"):
@@ -219,11 +221,12 @@ elif st.session_state.step == "ask_review_score":
         st.session_state.step = "ask_superhost"
         st.rerun()
 
+# Step 8: Ask for Superhost preference
 elif st.session_state.step == "ask_superhost":
     superhost = st.radio("Do you prefer a Superhost?", ["Any", "Yes", "No"])
     if st.button("Confirm Superhost Preference"):
         st.session_state.superhost = superhost
-        st.session_state.step = "ask_room_type"
+        st.session_state.step = "show_results"
         st.rerun()
 
 # Step 6: Show map with filtered Airbnbs inside polygon and sightseeing spots
