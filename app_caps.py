@@ -40,9 +40,9 @@ sightseeing_spots = {
 st.markdown(
     """
     <style>
-    /* Apply sleek Google Font */
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
 
+    /* Apply global styling */
     html, body, [class*="stApp"] {
         font-family: 'Poppins', sans-serif !important;
         background-color: #0B0F28 !important;
@@ -64,7 +64,7 @@ st.markdown(
     }
 
     /* BUTTONS */
-    .stButton>button {
+    .stButton > button {
         background: linear-gradient(135deg, #1A73E8, #4DA8DA) !important;
         color: white !important;
         border: none !important;
@@ -76,7 +76,7 @@ st.markdown(
         box-shadow: 0px 4px 10px rgba(77, 168, 218, 0.5);
     }
     
-    .stButton>button:hover {
+    .stButton > button:hover {
         background: linear-gradient(135deg, #4DA8DA, #1A73E8) !important;
         transform: scale(1.08);
         box-shadow: 0px 6px 15px rgba(77, 168, 218, 0.8);
@@ -131,7 +131,7 @@ st.markdown(
     }
 
     /* ADD A GLOW EFFECT TO THE BUTTONS */
-    .stButton>button:focus {
+    .stButton > button:focus {
         animation: pulseGlow 1.5s infinite;
     }
 
@@ -139,11 +139,11 @@ st.markdown(
     h1, h2, h3 {
         animation: fadeIn 1.2s ease-out;
     }
-
     </style>
     """,
     unsafe_allow_html=True,
 )
+
 
 
 
