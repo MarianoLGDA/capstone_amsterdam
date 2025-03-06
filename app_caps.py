@@ -40,22 +40,30 @@ sightseeing_spots = {
 st.markdown(
     """
     <style>
-    /* Dark blue background */
-    .stApp { background-color: #0B0F28 !important; color: #FFFFFF !important; }
+    /* Apply sleek Google Font */
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
 
-    /* Titles */
-    h1, h2 { 
-        color: #4DA8DA !important; /* Light blue accent */
-        font-weight: bold !important; 
-        text-align: center; 
+    html, body, [class*="stApp"] {
+        font-family: 'Poppins', sans-serif !important;
+        background-color: #0B0F28 !important;
+        color: white !important;
     }
 
-    /* Subtitles and paragraphs */
-    h3, h4, h5, h6, p, label { 
-        color: #E0E0E0 !important; /* Soft white for readability */
+    /* TITLES */
+    h1, h2 {
+        color: #4DA8DA !important;
+        font-weight: 600 !important;
+        text-align: center;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        animation: fadeIn 1s ease-in-out;
     }
 
-    /* Buttons */
+    h3, h4, h5, h6, p, label {
+        color: #E0E0E0 !important;
+    }
+
+    /* BUTTONS */
     .stButton>button {
         background: linear-gradient(135deg, #1A73E8, #4DA8DA) !important;
         color: white !important;
@@ -63,57 +71,80 @@ st.markdown(
         border-radius: 12px !important;
         font-size: 16px !important;
         font-weight: bold !important;
-        padding: 10px 20px !important;
+        padding: 12px 24px !important;
         transition: all 0.3s ease-in-out !important;
+        box-shadow: 0px 4px 10px rgba(77, 168, 218, 0.5);
     }
     
     .stButton>button:hover {
         background: linear-gradient(135deg, #4DA8DA, #1A73E8) !important;
-        transform: scale(1.05);
+        transform: scale(1.08);
+        box-shadow: 0px 6px 15px rgba(77, 168, 218, 0.8);
     }
 
-    /* Sidebar */
+    /* SIDEBAR */
     [data-testid="stSidebar"] {
-        background-color: #162447 !important; /* Deep dark blue sidebar */
-        color: white !important;
+        background-color: #162447 !important;
+        padding: 20px;
     }
     
-    /* Sidebar headers */
+    /* SIDEBAR HEADERS */
     [data-testid="stSidebar"] h1, 
     [data-testid="stSidebar"] h2, 
     [data-testid="stSidebar"] h3 {
         color: #4DA8DA !important;
+        font-weight: 600;
     }
 
-    /* Dropdowns & Select Boxes */
+    /* DROPDOWNS & SELECT BOXES */
     div[data-testid="stSelectbox"] label {
         font-size: 18px !important;
         color: #4DA8DA !important;
         font-weight: bold !important;
     }
     
-    /* Inputs */
+    /* INPUT FIELDS */
     input, textarea, select {
-        background-color: #1B1F3B !important;
+        background-color: rgba(27, 31, 59, 0.8) !important;
         color: white !important;
         border: 1px solid #4DA8DA !important;
         border-radius: 8px !important;
-        padding: 8px !important;
+        padding: 10px !important;
+        backdrop-filter: blur(8px);
     }
 
-    /* Customize Slider */
+    /* SLIDER CUSTOMIZATION */
     div[data-baseweb="slider"] > div {
         background: #4DA8DA !important;
     }
 
-    /* Improve contrast of text inside widgets */
-    .stTextInput, .stNumberInput, .stSelectbox, .stSlider {
-        color: white !important;
+    /* CUSTOM ANIMATIONS */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
     }
+
+    @keyframes pulseGlow {
+        0% { box-shadow: 0 0 10px rgba(77, 168, 218, 0.5); }
+        50% { box-shadow: 0 0 20px rgba(77, 168, 218, 0.8); }
+        100% { box-shadow: 0 0 10px rgba(77, 168, 218, 0.5); }
+    }
+
+    /* ADD A GLOW EFFECT TO THE BUTTONS */
+    .stButton>button:focus {
+        animation: pulseGlow 1.5s infinite;
+    }
+
+    /* MAKE HEADINGS APPEAR GRADUALLY */
+    h1, h2, h3 {
+        animation: fadeIn 1.2s ease-out;
+    }
+
     </style>
     """,
     unsafe_allow_html=True,
 )
+
 
 
 # Load logos
