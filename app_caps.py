@@ -359,45 +359,24 @@ if st.session_state.step == "show_results":
 
 import os
 import openai
-import streamlit as st
 
-# Load OpenAI API key from environment variable
+# ✅ Load API key correctly
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 if not OPENAI_API_KEY:
-    st.error("⚠️ API key is missing! Make sure it's set in your environment variables.")
-    st.stop()
+    raise ValueError("⚠️ API key is missing. Make sure it's set in your environment variables.")
 
-# Initialize OpenAI Client
+# ✅ Initialize OpenAI Client
 openai_client = openai.OpenAI(api_key=OPENAI_API_KEY)
 
-# AI Chatbot Section
-st.subheader("💬 SmartStay AI Travel Assistant")
-user_query = st.text_input("Ask me anything about your trip!")
+# ✅ Test OpenAI Request
+response = openai_client.chat.completions.create(
+    model="gpt-3.5-turbo",
+    messages=[{"role": "user", "content": "Hello!"}]
+)
 
-if st.button("🤖 Get AI Recommendations"):
-    if user_query:
-        with st.spinner("Thinking..."):
-            prompt = (
-                f"I'm traveling to {st.session_state.city} with a budget of {st.session_state.budget} euros per night. "
-                f"{user_query}. What do you recommend?"
-            )
+print(response.choices[0].message.content)
 
-            # OpenAI API Request
-            response = openai_client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "system", "content": "You are a helpful travel assistant."},
-                    {"role": "user", "content": prompt}
-                ]
-            )
-
-            # Display AI Response
-            st.write("### AI Response:")
-            st.write(response.choices[0].message.content)
-
-    else:
-        st.warning("⚠️ Please enter a question to get AI insights.")
 
 
 
