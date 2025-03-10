@@ -361,7 +361,7 @@ import openai
 import streamlit as st
 
 # OpenAI API Key (Hardcoded for Local Use)
-openai.api_key = "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"
+openai_client = openai.OpenAI(api_key="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")
 
 # AI Chatbot Section
 st.subheader("💬 SmartStay AI Travel Assistant")
@@ -375,8 +375,8 @@ if st.button("🤖 Get AI Recommendations"):
                 f"{user_query}. What do you recommend?"
             )
 
-            # Correct OpenAI API Request
-            response = openai.ChatCompletion.create(
+            # Correct OpenAI API Request (New API Format)
+            response = openai_client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
                     {"role": "system", "content": "You are a helpful travel assistant."},
@@ -386,10 +386,11 @@ if st.button("🤖 Get AI Recommendations"):
 
             # Display AI Response
             st.write("### AI Response:")
-            st.write(response["choices"][0]["message"]["content"])
+            st.write(response.choices[0].message.content)
 
     else:
         st.warning("⚠️ Please enter a question to get AI insights.")
+
 
 
 
