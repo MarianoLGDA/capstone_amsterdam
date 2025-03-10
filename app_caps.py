@@ -361,7 +361,7 @@ import openai
 import streamlit as st
 
 # OpenAI API Key (Hardcoded for Local Use)
-openai_client = openai.OpenAI(api_key="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")
+openai_client = openai.OpenAI(api_key="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")
 
 # AI Chatbot Section
 st.subheader("💬 SmartStay AI Travel Assistant")
