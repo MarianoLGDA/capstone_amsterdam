@@ -358,7 +358,7 @@ if st.session_state.step == "show_results":
     folium_static(map_city)
 
 # OpenAI API Key (Hardcoded for local use)
-OPENAI_API_KEY = "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"
+OPENAI_API_KEY = "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"
 client = openai.OpenAI(api_key=OPENAI_API_KEY)
 
 # AI Chatbot Section
