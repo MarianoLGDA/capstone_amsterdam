@@ -357,7 +357,35 @@ if st.session_state.step == "show_results":
 
     folium_static(map_city)
 
+# OpenAI API Key (Hardcoded for local use)
+OPENAI_API_KEY = "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"
+client = openai.OpenAI(api_key=OPENAI_API_KEY)
 
+# AI Chatbot Section
+st.subheader("💬 SmartStay AI Travel Assistant")
+user_query = st.text_input("Ask me anything about your trip!")
+
+if st.button("🤖 Get AI Recommendations"):
+    if user_query:
+        with st.spinner("Thinking..."):
+            try:
+                prompt = (
+                    f"I'm traveling to {st.session_state.city} with a budget of {st.session_state.budget} euros per night. "
+                    f"{user_query}. What do you recommend?"
+                )
+                response = client.chat.completions.create(
+                    model="gpt-3.5-turbo",
+                    messages=[
+                        {"role": "system", "content": "You are a helpful travel assistant."},
+                        {"role": "user", "content": prompt}
+                    ]
+                )
+                st.write("### AI Response:")
+                st.write(response.choices[0].message.content)
+            except Exception as e:
+                st.error(f"⚠️ Error generating response: {e}")
+    else:
+        st.warning("⚠️ Please enter a question to get AI insights.")
 
 
 
