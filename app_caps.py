@@ -357,11 +357,19 @@ if st.session_state.step == "show_results":
 
     folium_static(map_city)
 
+import os
 import openai
 import streamlit as st
 
-# OpenAI API Key (Hardcoded for Local Use)
-openai_client = openai.OpenAI(api_key="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")
+# Load OpenAI API key from environment variable
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
+if not OPENAI_API_KEY:
+    st.error("⚠️ API key is missing! Make sure it's set in your environment variables.")
+    st.stop()
+
+# Initialize OpenAI Client
+openai_client = openai.OpenAI(api_key=OPENAI_API_KEY)
 
 # AI Chatbot Section
 st.subheader("💬 SmartStay AI Travel Assistant")
@@ -375,7 +383,7 @@ if st.button("🤖 Get AI Recommendations"):
                 f"{user_query}. What do you recommend?"
             )
 
-            # Correct OpenAI API Request (New API Format)
+            # OpenAI API Request
             response = openai_client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
@@ -390,6 +398,7 @@ if st.button("🤖 Get AI Recommendations"):
 
     else:
         st.warning("⚠️ Please enter a question to get AI insights.")
+
 
 
 
