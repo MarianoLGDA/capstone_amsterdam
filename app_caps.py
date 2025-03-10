@@ -359,6 +359,7 @@ if st.session_state.step == "show_results":
 
 import openai
 import streamlit as st
+from openai.error import AuthenticationError, OpenAIError 
 
 # OpenAI API Key (Local use, hardcoded for safety)
 OPENAI_API_KEY = "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"
