@@ -360,7 +360,7 @@ if st.session_state.step == "show_results":
 import openai
 import streamlit as st
 
-# Correct OpenAI API Client Initialization
+# OpenAI API Key (Hardcoded for Local Use)
 openai.api_key = "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"
 
 # AI Chatbot Section
@@ -370,36 +370,23 @@ user_query = st.text_input("Ask me anything about your trip!")
 if st.button("🤖 Get AI Recommendations"):
     if user_query:
         with st.spinner("Thinking..."):
-            try:
-                prompt = (
-                    f"I'm traveling to {st.session_state.city} with a budget of {st.session_state.budget} euros per night. "
-                    f"{user_query}. What do you recommend?"
-                )
+            prompt = (
+                f"I'm traveling to {st.session_state.city} with a budget of {st.session_state.budget} euros per night. "
+                f"{user_query}. What do you recommend?"
+            )
 
-                # Correct OpenAI API Request
-                response = openai.ChatCompletion.create(
-                    model="gpt-3.5-turbo",
-                    messages=[
-                        {"role": "system", "content": "You are a helpful travel assistant."},
-                        {"role": "user", "content": prompt}
-                    ]
-                )
+            # Correct OpenAI API Request
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "You are a helpful travel assistant."},
+                    {"role": "user", "content": prompt}
+                ]
+            )
 
-                # Ensure a response exists before accessing choices
-                if response and "choices" in response:
-                    st.write("### AI Response:")
-                    st.write(response["choices"][0]["message"]["content"])
-                else:
-                    st.error("⚠️ No response received from AI.")
-
-            except openai.error.AuthenticationError:  # ✅ Fix: Use openai directly
-                st.error("⚠️ Invalid API key! Please check your OpenAI API key.")
-
-            except openai.error.OpenAIError as e:  # ✅ Fix: Use openai directly
-                st.error(f"⚠️ OpenAI API error: {e}")
-
-            except Exception as e:
-                st.error(f"⚠️ Unexpected error: {e}")
+            # Display AI Response
+            st.write("### AI Response:")
+            st.write(response["choices"][0]["message"]["content"])
 
     else:
         st.warning("⚠️ Please enter a question to get AI insights.")
