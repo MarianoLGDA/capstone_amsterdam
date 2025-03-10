@@ -357,9 +357,14 @@ if st.session_state.step == "show_results":
 
     folium_static(map_city)
 
-# OpenAI API Key (Hardcoded for local use)
+import openai
+import streamlit as st
+
+# OpenAI API Key (Local use, hardcoded for safety)
 OPENAI_API_KEY = "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"
-client = openai.OpenAI(api_key=OPENAI_API_KEY)
+
+# Correct OpenAI Client Initialization
+openai.api_key = OPENAI_API_KEY
 
 # AI Chatbot Section
 st.subheader("💬 SmartStay AI Travel Assistant")
@@ -373,19 +378,35 @@ if st.button("🤖 Get AI Recommendations"):
                     f"I'm traveling to {st.session_state.city} with a budget of {st.session_state.budget} euros per night. "
                     f"{user_query}. What do you recommend?"
                 )
-                response = client.chat.completions.create(
+                
+                # Correct API Request Format
+                response = openai.ChatCompletion.create(
                     model="gpt-3.5-turbo",
                     messages=[
                         {"role": "system", "content": "You are a helpful travel assistant."},
                         {"role": "user", "content": prompt}
                     ]
                 )
-                st.write("### AI Response:")
-                st.write(response.choices[0].message.content)
+                
+                # Ensure a response exists before accessing choices
+                if response and "choices" in response:
+                    st.write("### AI Response:")
+                    st.write(response["choices"][0]["message"]["content"])
+                else:
+                    st.error("⚠️ No response received from AI.")
+            
+            except openai.error.AuthenticationError:
+                st.error("⚠️ Invalid API key! Please check your OpenAI API key.")
+            
+            except openai.error.OpenAIError as e:
+                st.error(f"⚠️ OpenAI API error: {e}")
+            
             except Exception as e:
-                st.error(f"⚠️ Error generating response: {e}")
+                st.error(f"⚠️ Unexpected error: {e}")
+
     else:
         st.warning("⚠️ Please enter a question to get AI insights.")
+
 
 
 
