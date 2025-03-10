@@ -360,22 +360,30 @@ if st.session_state.step == "show_results":
 import os
 import openai
 
-# ✅ Load API key correctly
+# ✅ Ensure API key is loaded correctly
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
+# 🚨 If still missing, try reading directly from PowerShell's environment
 if not OPENAI_API_KEY:
-    raise ValueError("⚠️ API key is missing. Make sure it's set in your environment variables.")
+    print("⚠️ API Key not found! Trying alternative method...")
+    import subprocess
+    OPENAI_API_KEY = subprocess.check_output("powershell.exe echo $env:OPENAI_API_KEY", shell=True).decode().strip()
+
+# 🚨 Final check
+if not OPENAI_API_KEY:
+    raise ValueError("❌ API key is STILL missing! Fix your environment variables.")
 
 # ✅ Initialize OpenAI Client
 openai_client = openai.OpenAI(api_key=OPENAI_API_KEY)
 
-# ✅ Test OpenAI Request
+# ✅ Test OpenAI API
 response = openai_client.chat.completions.create(
     model="gpt-3.5-turbo",
     messages=[{"role": "user", "content": "Hello!"}]
 )
 
 print(response.choices[0].message.content)
+
 
 
 
