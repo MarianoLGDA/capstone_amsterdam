@@ -471,7 +471,7 @@ if st.button("🤖 Get AI Recommendations"):
                 prompt = (
                     f"I'm traveling to {city} with a budget of {budget} euros per night. "
                     f"I want to visit {selected_sights}. "
-                    "Please recommend must-visit attractions, local restaurants, and unique experiences. You need to be super enthuaistic with the user, and make really good and specific recoomendations"
+                    "Please recommend must-visit attractions, local restaurants, the schedule time of the siteseeings. Also mention the nearest metro stations.You need to be super enthuaistic with the user, and make really good and specific recoomendations"
                 )
 
                 # ✅ OpenAI API Request
