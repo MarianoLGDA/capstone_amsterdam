@@ -8,17 +8,14 @@ import geopandas as gpd
 from shapely.geometry import Polygon
 from folium.plugins import MarkerCluster
 from streamlit_folium import folium_static, st_folium
-from dotenv import load_dotenv  # ✅ Correct import
+import streamlit as st  # ✅ Needed to access secrets
 
-# ✅ Load .env file immediately after importing dotenv
-dotenv_path = os.path.join(os.path.dirname(__file__), ".env")
-load_dotenv(dotenv_path)  # ✅ This line loads the API key from .env
+# ✅ Retrieve API Key from Streamlit Secrets
+OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
 
-# ✅ Retrieve API Key
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-
+# Check if API Key exists
 if not OPENAI_API_KEY:
-    st.error("⚠️ API key is missing! Ensure it's set in the .env file.")
+    st.error("⚠️ API key is missing! Ensure it's set in Streamlit Secrets.")
     st.stop()
 
 # ✅ Initialize OpenAI Client
