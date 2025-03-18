@@ -5,3 +5,4 @@ pandas
 shapely
 streamlit_folium
 openai
+dotenv
